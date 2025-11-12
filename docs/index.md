@@ -187,3 +187,56 @@ Each semester, UH Mānoa students lose countless items — IDs, water bottles, t
 
 ## 🧱 Repository Structure
 
+/docs/
+index.md
+images/
+mockup-landing.jpg
+mockup-feed.jpg
+mockup-dashboard.jpg
+mockup-post-lost.jpg
+mockup-post-found.jpg
+mockup-item-details.jpg
+mockup-recovery.jpg
+mockup-locations.jpg
+/src/ # (future implementation)
+/README.md # (optional: link to live site)
+
+## ⚠️ Risks & Mitigations
+
+| Risk | Mitigation |
+|---|---|
+| UH authentication complexity | Start with demo/login; integrate UH SSO later |
+| Matching accuracy | Start with keyword filters; add fuzzy/AI synonyms later |
+| Duplicate posts | Simple duplicate detection + admin merge tools |
+| Privacy & safety | No private handoffs; all returns through UH offices |
+| Moderation load | Admin workflows + flags + status updates |
+
+---
+
+## 🌱 Future Enhancements
+
+- AI synonym/fuzzy search (e.g., “AirPods” ≈ “Apple earbuds”)  
+- QR poster generator linking to item pages  
+- Campus map markers for last-seen and turn-in points  
+- Auto-archive stale posts unless renewed  
+- Recovery metrics (e.g., “123 items reunited this semester”)  
+
+---
+
+## 👨‍💻 Team
+
+| Name | Focus |
+|---|---|
+| **Jermaine Bruno** | Product & Admin workflows |
+| **Michael Lau** | Matching & Notifications |
+| **Brandon Nguyen** | UI/UX & Mockups |
+| **Edward Uzueta** | Data Model & Locations/Offices |
+| **Justin Lai** | Frontend Integration |
+
+---
+
+<p align="center"><sub>Made with ❤️ by UH Mānoa students — inspired by Bowfolios/Techfolios.</sub></p>
+
+<p align="center">
+  <a href="https://github.com/manoa-lost-found/manoa-lost-found/edit/Project-page/docs/index.md">✏️ Edit this page on GitHub</a>
+</p>
