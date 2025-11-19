@@ -1,53 +1,61 @@
-import { getServerSession } from 'next-auth';
-import { Col, Container, Row, Table } from 'react-bootstrap';
-import { prisma } from '@/lib/prisma';
-import StuffItem from '@/components/StuffItem';
-import { loggedInProtectedPage } from '@/lib/page-protection';
-import authOptions from '@/lib/authOptions';
-
-/** Render a list of stuff for the logged in user. */
-const ListPage = async () => {
-  // Protect the page, only logged in users can access it.
-  const session = await getServerSession(authOptions);
-  loggedInProtectedPage(
-    session as {
-      user: { email: string; id: string; randomKey: string };
-      // eslint-disable-next-line @typescript-eslint/comma-dangle
-    } | null,
-  );
-  const owner = (session && session.user && session.user.email) || '';
-  const stuff = await prisma.stuff.findMany({
-    where: {
-      owner,
-    },
-  });
-  // console.log(stuff);
+export default function LostFoundFeed() {
   return (
-    <main>
-      <Container id="list" fluid className="py-3">
-        <Row>
-          <Col>
-            <h1>Stuff</h1>
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Quantity</th>
-                  <th>Condition</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stuff.map((item) => (
-                  <StuffItem key={item.id} {...item} />
-                ))}
-              </tbody>
-            </Table>
-          </Col>
-        </Row>
-      </Container>
-    </main>
-  );
-};
+    <div className="p-6 max-w-6xl mx-auto">
+      <div className="bg-white p-6 shadow-md rounded-xl">
+        {/* Header */}
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold">Lost/Found Feed</h1>
+            <span className="text-gray-500">with filters</span>
+          </div>
 
-export default ListPage;
+          <button className="text-emerald-700 font-semibold">SORT</button>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Filter Sidebar */}
+          <div className="col-span-1 border-r pr-4">
+            <h2 className="font-semibold mb-4">Filter by</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="font-semibold text-sm">Category</label>
+                <select className="w-full mt-1 border rounded-md p-2 text-sm">
+                  <option>Stationary</option>
+                  <option>Electronics</option>
+                  <option>Clothing</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-semibold text-sm">Building</label>
+                <select className="w-full mt-1 border rounded-md p-2 text-sm">
+                  <option>POST 309</option>
+                  <option>Bilger</option>
+                  <option>Hamilton Library</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-semibold text-sm">Found</label>
+                <select className="w-full mt-1 border rounded-md p-2 text-sm">
+                  <option>Fall 2025</option>
+                  <option>Spring 2026</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Feed Items */}
+          <div className="col-span-3 flex flex-col items-center justify-center py-10">
+            <p className="text-gray-500 text-lg font-medium">
+              No items have been reported.
+            </p>
+          </div>
+        </div>
+
+        <h2 className="text-center mt-10 text-xl font-semibold">Lost/Found Feed</h2>
+      </div>
+    </div>
+  );
+}

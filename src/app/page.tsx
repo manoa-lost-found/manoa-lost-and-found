@@ -1,21 +1,18 @@
-import { Col, Container, Image, Row } from 'react-bootstrap';
+export default function HomePage() {
+  return (
+    <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '70vh' }}>
+      <h1 className="fw-bold text-center">Manoa Lost & Found</h1>
+      <p className="text-muted text-center">
+        Find and report lost items on the UH Mānoa campus.
+      </p>
 
-/** The Home page. */
-const Home = () => (
-  <main>
-    <Container id="landing-page" fluid className="py-3">
-      <Row className="align-middle text-center">
-        <Col xs={4}>
-          <Image src="next.svg" width="150px" alt="" />
-        </Col>
-
-        <Col xs={8} className="d-flex flex-column justify-content-center">
-          <h1>Welcome to this template</h1>
-          <p>Now get to work and modify this app!</p>
-        </Col>
-      </Row>
-    </Container>
-  </main>
-);
-
-export default Home;
+      <a
+        href="/auth/signin"
+        className="btn btn-success btn-lg mt-3 px-4 py-2"
+        style={{ backgroundColor: '#024731', borderColor: '#024731' }}
+      >
+        Login with UH SSO
+      </a>
+    </div>
+  );
+}
