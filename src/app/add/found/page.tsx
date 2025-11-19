@@ -5,24 +5,24 @@ export default function AddFoundPage() {
 
       <form className="mt-4">
         <div className="mb-3">
-          <label htmlFor="itemName" className="form-label">
+          <label htmlFor="foundItemName" className="form-label">
             Item Name
           </label>
-          <input id="itemName" name="itemName" className="form-control" />
+          <input id="foundItemName" name="foundItemName" className="form-control" />
         </div>
 
         <div className="mb-3">
-          <label htmlFor="locationFound" className="form-label">
+          <label htmlFor="foundLocation" className="form-label">
             Location Found
           </label>
-          <input id="locationFound" name="locationFound" className="form-control" />
+          <input id="foundLocation" name="foundLocation" className="form-control" />
         </div>
 
         <div className="mb-3">
-          <label htmlFor="dateFound" className="form-label">
+          <label htmlFor="foundDate" className="form-label">
             Date Found
           </label>
-          <input id="dateFound" name="dateFound" type="date" className="form-control" />
+          <input id="foundDate" name="foundDate" type="date" className="form-control" />
         </div>
 
         <button type="submit" className="btn btn-success">
