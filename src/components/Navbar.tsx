@@ -2,73 +2,44 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap';
 
-export default function NavBar() {
+export default function Navbar() {
   return (
-    <Navbar
-      expand="lg"
-      style={{
-        backgroundColor: '#024731', // UH Mānoa green
-        borderBottom: '4px solid #6BA539', // UH accent
-      }}
-      variant="dark"
+    <nav
+      className="navbar navbar-expand-lg"
+      style={{ backgroundColor: '#024731' }}
     >
-      <Container>
+      <div className="container-fluid">
+        <Link href="/" className="navbar-brand text-white fw-bold d-flex align-items-center">
+          <Image src="/uh-logo.png" alt="UH Logo" width={40} height={40} />
+          <span className="ms-2">Manoa Lost & Found</span>
+        </Link>
 
-        {/* LOGO + BRAND */}
-        <Navbar.Brand as={Link} href="/" className="d-flex align-items-center">
-          <Image
-            src="/uh-logo.png"
-            alt="UH Logo"
-            width={38}
-            height={38}
-            style={{ marginRight: '10px' }}
-          />
-          <span style={{ color: 'white', fontWeight: 'bold', fontSize: '1.1rem' }}>
-            Manoa Lost & Found
-          </span>
-        </Navbar.Brand>
-
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto">
-
-            <Nav.Link as={Link} href="/list" style={{ color: 'white' }}>
-              Lost/Found Feed
-            </Nav.Link>
-
-            <Nav.Link as={Link} href="/add/lost" style={{ color: 'white' }}>
-              Report Lost Item
-            </Nav.Link>
-
-            <Nav.Link as={Link} href="/add/found" style={{ color: 'white' }}>
-              Report Found Item
-            </Nav.Link>
-
-            {/* LOGIN MENU */}
-            <NavDropdown
-              title="Login"
-              id="basic-nav-dropdown"
-              menuVariant="light"
-            >
-              <NavDropdown.Item as={Link} href="/auth/signin">
-                Sign in
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} href="/auth/signup">
-                Sign up
-              </NavDropdown.Item>
-            </NavDropdown>
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-
-      <style jsx>{`
-        .nav-link:hover {
-          color: #6BA539 !important; /* UH Light Green */
-        }
-      `}</style>
-    </Navbar>
+        <div className="collapse navbar-collapse">
+          <ul className="navbar-nav ms-auto">
+            <li className="nav-item">
+              <Link href="/list" className="nav-link text-white">
+                Lost/Found Feed
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/add/lost" className="nav-link text-white">
+                Report Lost
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/add/found" className="nav-link text-white">
+                Report Found
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/auth/signin" className="nav-link text-white">
+                Login
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
   );
 }

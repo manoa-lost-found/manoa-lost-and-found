@@ -1,6 +1,9 @@
 export default function HomePage() {
   return (
-    <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '70vh' }}>
+    <div
+      className="container d-flex flex-column justify-content-center align-items-center"
+      style={{ minHeight: '70vh' }}
+    >
       <h1 className="fw-bold text-center">Manoa Lost & Found</h1>
       <p className="text-muted text-center">
         Find and report lost items on the UH Mānoa campus.
