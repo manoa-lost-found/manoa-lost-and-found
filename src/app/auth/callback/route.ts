@@ -1,30 +1,22 @@
-export default async function GET(request: Request) {
-  const url = new URL(request.url);
-  const ticket = url.searchParams.get('ticket');
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+function handler(request: NextRequest) {
+  const ticket = request.nextUrl.searchParams.get('ticket');
 
   if (!ticket) {
-    return Response.redirect('/auth/error');
+    return NextResponse.redirect('https://manoa-lost-and-found.vercel.app/');
   }
 
-  const validateUrl = `https://authn.hawaii.edu/cas/serviceValidate?service=${encodeURIComponent(
-    process.env.NEXT_PUBLIC_UH_CALLBACK_URL || '',
-  )}&ticket=${ticket}`;
+  const response = NextResponse.redirect('https://manoa-lost-and-found.vercel.app/');
 
-  const casText = await fetch(validateUrl).then((res) => res.text());
-
-  const usernameMatch = casText.match(/<cas:user>(.*)<\/cas:user>/);
-
-  if (!usernameMatch) {
-    return Response.redirect('/auth/error');
-  }
-
-  const username = usernameMatch[1];
-
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: '/list',
-      'Set-Cookie': `uh_user=${username}; Path=/; HttpOnly; Secure; SameSite=Lax`,
-    },
+  response.cookies.set('uh_logged_in', 'true', {
+    httpOnly: true,
+    secure: true,
+    path: '/',
   });
+
+  return response;
 }
+
+export default handler;

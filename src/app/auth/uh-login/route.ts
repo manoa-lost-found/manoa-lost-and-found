@@ -1,7 +1,11 @@
-export default function GET() {
-  const loginUrl = `https://authn.hawaii.edu/cas/login?service=${encodeURIComponent(
-    process.env.NEXT_PUBLIC_UH_CALLBACK_URL || '',
-  )}`;
+import { NextResponse } from 'next/server';
 
-  return Response.redirect(loginUrl);
+function handler() {
+  const serviceUrl = encodeURIComponent('https://manoa-lost-and-found.vercel.app/auth/callback');
+
+  const redirectUrl = `https://authn.hawaii.edu/cas/login?service=${serviceUrl}`;
+
+  return NextResponse.redirect(redirectUrl);
 }
+
+export default handler;
