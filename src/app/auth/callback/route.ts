@@ -1,12 +1,33 @@
-import { NextResponse } from 'next/server';
-
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const ticket = searchParams.get('ticket');
+export default async function GET(request: Request) {
+  const url = new URL(request.url);
+  const ticket = url.searchParams.get("ticket");
 
   if (!ticket) {
-    return NextResponse.redirect('/auth/error');
+    return Response.redirect("/auth/error");
   }
 
-  return NextResponse.redirect('/list');
+  const casValidateUrl =
+    "https://authn.hawaii.edu/cas/serviceValidate?service=" +
+    encodeURIComponent(process.env.NEXT_PUBLIC_UH_CALLBACK_URL || "") +
+    "&ticket=" +
+    ticket;
+
+  const casResponse = await fetch(casValidateUrl).then((res) => res.text());
+
+  const usernameMatch = casResponse.match(/<cas:user>(.*)<\/cas:user>/);
+
+  if (!usernameMatch) {
+    return Response.redirect("/auth/error");
+  }
+
+  const username = usernameMatch[1];
+
+  // Set login cookie
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: "/list",
+      "Set-Cookie": `uh_user=${username}; Path=/; HttpOnly; Secure; SameSite=Lax`,
+    },
+  });
 }
