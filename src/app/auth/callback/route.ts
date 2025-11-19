@@ -7,7 +7,7 @@ export default async function GET(request: Request) {
   }
 
   const validateUrl = `https://authn.hawaii.edu/cas/serviceValidate?service=${encodeURIComponent(
-    process.env.NEXT_PUBLIC_UH_CALLBACK_URL || ''
+    process.env.NEXT_PUBLIC_UH_CALLBACK_URL || '',
   )}&ticket=${ticket}`;
 
   const casText = await fetch(validateUrl).then((res) => res.text());
