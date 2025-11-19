@@ -10,7 +10,7 @@ export default function HomePage() {
       </p>
 
       <a
-        href="/auth/signin"
+        href="/auth/uh-login"
         className="btn btn-success btn-lg mt-3 px-4 py-2"
         style={{ backgroundColor: '#024731', borderColor: '#024731' }}
       >
