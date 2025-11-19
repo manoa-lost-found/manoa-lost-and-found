@@ -4,30 +4,45 @@ export default function AddLostPage() {
       <h1 className="fw-bold">Report Lost Item</h1>
 
       <form className="mt-4">
+
         <div className="mb-3">
-          <label htmlFor="itemName" className="form-label">
+          <label htmlFor="lostItemName" className="form-label">
             Item Name
+            <input
+              id="lostItemName"
+              name="lostItemName"
+              className="form-control"
+            />
           </label>
-          <input id="itemName" name="itemName" className="form-control" />
         </div>
 
         <div className="mb-3">
-          <label htmlFor="locationLost" className="form-label">
-            Location Lost
+          <label htmlFor="lostLocation" className="form-label">
+            Last Seen Location
+            <input
+              id="lostLocation"
+              name="lostLocation"
+              className="form-control"
+            />
           </label>
-          <input id="locationLost" name="locationLost" className="form-control" />
         </div>
 
         <div className="mb-3">
-          <label htmlFor="dateLost" className="form-label">
+          <label htmlFor="lostDate" className="form-label">
             Date Lost
+            <input
+              id="lostDate"
+              name="lostDate"
+              type="date"
+              className="form-control"
+            />
           </label>
-          <input id="dateLost" name="dateLost" type="date" className="form-control" />
         </div>
 
-        <button type="submit" className="btn btn-danger">
+        <button type="submit" className="btn btn-success">
           Submit
         </button>
+
       </form>
     </div>
   );
