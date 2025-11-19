@@ -1,8 +1,7 @@
-import { NextResponse } from 'next/server';
+export default function GET() {
+  const casLoginUrl =
+    "https://authn.hawaii.edu/cas/login?service=" +
+    encodeURIComponent(process.env.NEXT_PUBLIC_UH_CALLBACK_URL || "");
 
-export function GET() {
-  const serviceUrl = encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`);
-  const casUrl = `https://authn.hawaii.edu/cas/login?service=${serviceUrl}`;
-
-  return NextResponse.redirect(casUrl);
+  return Response.redirect(casLoginUrl);
 }
