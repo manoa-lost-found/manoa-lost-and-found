@@ -15,8 +15,8 @@ export default function HomePage() {
               <div className="landing-collage-left">
                 <div className="landing-card landing-card-lg">
                   <Image
-                    src="/landing/uh-path-main.jpg"
-                    alt="Lost item mockup"
+                    src="/campusmap.jpg"
+                    alt="UH Manoa Campus Map"
                     fill
                     className="landing-img"
                   />
@@ -28,32 +28,32 @@ export default function HomePage() {
               <div className="landing-collage-right">
                 <div className="landing-card landing-card-sm">
                   <Image
-                    src="/landing/uh-campus-1.jpg"
-                    alt="Campus 1"
+                    src="/uhcampus1.jpg"
+                    alt="Campus Center"
                     fill
                     className="landing-img"
                   />
                 </div>
                 <div className="landing-card landing-card-sm">
                   <Image
-                    src="/landing/uh-campus-2.jpg"
-                    alt="Campus 2"
+                    src="/uhcampus2.jpg"
+                    alt="Girls sitting in front of Hawaii Hall"
                     fill
                     className="landing-img"
                   />
                 </div>
                 <div className="landing-card landing-card-sm">
                   <Image
-                    src="/landing/uh-campus-3.jpg"
-                    alt="Campus 3"
+                    src="/uhcampus4.jpg"
+                    alt="Hamilton Library Interior"
                     fill
                     className="landing-img"
                   />
                 </div>
                 <div className="landing-card landing-card-sm">
                   <Image
-                    src="/landing/uh-campus-4.jpg"
-                    alt="Campus 4"
+                    src="/uhcampus3.jpg"
+                    alt="Hamilton Library"
                     fill
                     className="landing-img"
                   />
@@ -74,8 +74,8 @@ export default function HomePage() {
           <div className="col-lg-5 offset-lg-1">
             <div className="landing-hero-image-lg mb-4">
               <Image
-                src="/landing/uh-hero-large.jpg"
-                alt="Students on UH Mānoa campus"
+                src="/feed.png"
+                alt="Lost and found feed showing items"
                 fill
                 className="landing-img"
               />
@@ -118,8 +118,8 @@ export default function HomePage() {
             <div className="col-lg-5 offset-lg-1">
               <div className="landing-bottom-image">
                 <Image
-                  src="/landing/uh-extra-bottom.jpg"
-                  alt="Students returning a lost item at UH Mānoa campus"
+                  src="/feed.png"
+                  alt="Feed showing lost and found items"
                   fill
                   className="landing-img"
                 />
