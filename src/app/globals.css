@@ -321,7 +321,7 @@ body {
 
 @media (min-width: 992px) {
   .landing-card-lg {
-    height: 395px; /* tweak 330–360 until the green bar lines up perfectly */
+    height: 400px;
   }
 }
 
