@@ -87,13 +87,13 @@ export default function SignUpPage() {
 
         {devVerifyUrl && (
           <div className="alert alert-info py-2" role="alert">
-            <strong>Developer shortcut:</strong>
+            <strong>Didn&apos;t see an email?</strong>
             {' '}
-            <a href={devVerifyUrl}>Click here to verify this email now.</a>
+            <a href={devVerifyUrl}>Click here to verify your account now.</a>
             <br />
             <small className="text-muted">
-              This link is shown only in development so you can test verification
-              without real emails.
+              This link will verify your email for this account even if the
+              message doesn&apos;t arrive in your inbox.
             </small>
           </div>
         )}
