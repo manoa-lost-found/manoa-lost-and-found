@@ -15,8 +15,12 @@ export default function Navbar() {
   const loggedIn = status === 'authenticated';
   const pathname = usePathname();
 
-  const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname.startsWith(href);
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
     <nav className="navbar navbar-expand-lg app-navbar">
@@ -45,10 +49,7 @@ export default function Navbar() {
               <li className="nav-item" key={link.href}>
                 <Link
                   href={link.href}
-                  className={
-                    'nav-link app-nav-link ' +
-                    (isActive(link.href) ? 'app-nav-link-active' : '')
-                  }
+                  className={`nav-link app-nav-link ${isActive(link.href) ? 'app-nav-link-active' : ''}`}
                 >
                   {link.label}
                 </Link>

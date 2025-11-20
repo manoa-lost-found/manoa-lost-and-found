@@ -11,7 +11,7 @@ type Props = {
 const Providers = ({ children }: Props) => {
   useEffect(() => {
     // Enable Bootstrap JS behaviors: collapse, dropdown, etc.
-    import('bootstrap/dist/js/bootstrap.bundle.min.js');
+    import('bootstrap/dist/js/bootstrap.bundle');
   }, []);
 
   return <SessionProvider>{children}</SessionProvider>;
