@@ -1,4 +1,15 @@
-export default function LostFoundFeed() {
+// src/app/list/page.tsx
+
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import authOptions from '@/lib/authOptions';
+
+export default async function LostFoundFeed() {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    redirect('/auth/signin');
+  }
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="bg-white p-6 shadow-md rounded-xl">
@@ -15,13 +26,11 @@ export default function LostFoundFeed() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-6">
-
           {/* Filter Sidebar */}
           <div className="col-span-1 border-r pr-4">
             <h2 className="font-semibold mb-4">Filter by</h2>
 
             <div className="space-y-4">
-
               <div>
                 <label htmlFor="filterCategory" className="font-semibold text-sm">
                   Category
@@ -62,7 +71,6 @@ export default function LostFoundFeed() {
                   </select>
                 </label>
               </div>
-
             </div>
           </div>
 
@@ -72,13 +80,11 @@ export default function LostFoundFeed() {
               No items have been reported.
             </p>
           </div>
-
         </div>
 
         <h2 className="text-center mt-10 text-xl font-semibold">
           Lost/Found Feed
         </h2>
-
       </div>
     </div>
   );
