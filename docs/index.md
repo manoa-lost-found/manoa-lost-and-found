@@ -6,13 +6,13 @@
     color: #0f172a;
   }
 
-  /* Hide the default GitHub Pages header */
+  /* Hide GitHub Pages default header */
   body > header {
-    display: none;
+    display: none !important;
   }
 
-  /* Main content container */
-  #content, main {
+  /* Main container */
+  #content, main, article {
     max-width: 960px;
     margin: 0 auto;
     padding: 3.5rem 1.5rem 4rem;
@@ -79,78 +79,66 @@ A simple way for UH Mānoa students to report lost items, browse found items, an
 
 ## Overview
 
-Every day at UH Mānoa, students lose IDs, water bottles, laptops, and other things that actually matter to them. Right now, there is no single place to see what’s been found on campus or to report what you lost.
+Every day at UH Mānoa, students lose IDs, water bottles, laptops, and other things they actually depend on. There is no single place to check if something was found — and no clear process for turning items in.
 
-**Manoa Lost & Found** is our attempt to fix that.
-
-The app pulls the experience into one spot:
+**Manoa Lost & Found** solves this by offering one place to:
 
 - Report items you’ve **lost**
 - Report items you’ve **found**
 - Browse and filter a shared feed
-- Follow a clear, UH-friendly recovery process
+- Follow a UH-approved, safe recovery process
 
-The app is built by UH Mānoa students for students, with the goal of making it easier for lost stuff to find its way back home.
+Built by UH Mānoa students, for UH Mānoa students.
 
 ---
 
 ## Why It Matters
 
-Currently, UH Mānoa has:
+Right now, UH Mānoa’s lost-and-found system is:
 
-- Separate lost & found desks in different buildings  
-- No central system to browse lost or found items  
-- No consistent or obvious process for recovery  
+- Scattered across buildings  
+- Inconsistent  
+- Hard to navigate  
+- Easy to miss  
 
-If you’re new to campus, or just busy, it’s easy to give up and assume your item is gone forever.
+Our app fixes this by:
 
-Our app is meant to:
-
-- Give students **one URL** to remember  
-- Make the process feel **simple and intuitive**  
-- Keep item handoff **safe** by using official UH offices, not random meetups
+- Providing **one central location**
+- Making the process **simple and predictable**
+- Keeping handoffs **safe** through UH offices only
 
 ---
 
 ## What You Can Do
 
-With Manoa Lost & Found, a UH student or staff member can:
+With Manoa Lost & Found, users can:
 
-- **Post a Lost Item** with details and a photo  
-- **Post a Found Item** and mark where it was turned in  
-- **Browse the feed** of all lost and found items on campus  
-- **See what to do next** via an FAQ and clear instructions  
-
-Later milestones add more admin tools, smarter matching, and better ways to follow up.
+- **Post a Lost Item**
+- **Post a Found Item**
+- Browse all campus posts
+- Follow the official recovery steps
+- Access everything through UH Login
 
 ---
 
 ## User Roles
 
-### Students & Staff
-
+### Students & Staff  
 - Log in with UH credentials  
-- Report lost items  
+- Report lost & found items  
+- Manage their own posts  
+- Browse the full campus feed  
+
+### Finders  
 - Report found items  
-- View and manage their own posts  
-- Browse the campus-wide feed
+- State where the item was turned in  
+- Help reconnect items safely  
 
-### Finders
-
-Any authenticated user can act as a finder:
-
-- Report a found item  
-- Indicate where it was found and where it was turned in  
-- Help the owner reconnect with their stuff in a safe way
-
-### Admins (Planned)
-
-In future milestones, UH staff (e.g., Campus Center / Library) will be able to:
-
-- View items that have been physically turned in  
-- Mark items as received, ready for pickup, or recovered  
-- Moderate and clean up posts  
-- Maintain FAQ and help content
+### Admins (future)  
+- Verify turned-in items  
+- Update statuses (Received → Ready → Recovered)  
+- Moderate posts  
+- Manage official locations & FAQ  
 
 ---
 
@@ -158,208 +146,154 @@ In future milestones, UH staff (e.g., Campus Center / Library) will be able to:
 
 - **Live Site:** https://manoa-lost-and-found.vercel.app/  
 - **GitHub Repo:** https://github.com/manoa-lost-found/manoa-lost-and-found  
-- **Project Page (GitHub Pages):** https://manoa-lost-found.github.io/manoa-lost-and-found/
-
-The app itself is deployed with **Vercel**, which rebuilds automatically when changes are pushed to `main`.  
-GitHub Pages is used for this **project documentation page**.
+- **GitHub Pages (Project Page):** https://manoa-lost-found.github.io/manoa-lost-and-found/
 
 ---
 
-## User Guide
+# User Guide
 
-This section mirrors the main flows of the app.
+## Landing Page
 
-### Landing Page
+The landing page introduces the app:
 
-The landing page introduces the app and sets the tone:
+- “Find it. Report it. Reunite it.”  
+- Short explanation  
+- UH SSO login button  
 
-- Hero text like “**Find it. Report it. Reunite it.**”  
-- Short explanation of what the app does  
-- Prominent button such as **“Login with UH SSO”**  
-
-**(**__IMAGE PLACEHOLDER: Landing Page mockup screenshot — e.g. `docs/images/mockup-landing-v2.png`__**)**
+**(**__IMAGE PLACEHOLDER: Landing Page mockup — `mockup-landing-v2.png`__**)**
 
 ---
 
-### Sign In
+## Sign In
 
-When a user clicks to log in, they’re taken through UH SSO.
+Users authenticate through UH Login to ensure campus-only access.
 
-- Only UH students/staff can use the app  
-- Keeps lost and found information within the UH community  
-- Sets the stage for future role-based features (students, staff, admins)
-
-**(**__IMAGE PLACEHOLDER: Sign In / UH SSO screen mockup — e.g. `docs/images/mockup-sign-in-v2.png`__**)**
+**(**__IMAGE PLACEHOLDER: Sign In / UH Login mockup — `mockup-sign-in-v2.png`__**)**
 
 ---
 
-### Item Feed
+## Item Feed
 
-After logging in, users arrive at the **item feed**:
+After signing in, users see the main feed:
 
-- Lost and Found posts shown in a clean card layout  
-- Each card shows an image (if available), brief description, location, and status  
-- Filters for category, location, and other basic properties (design-level in M1)
+- Lost & Found items  
+- Card-style layout  
+- Filters (category, location, etc.)
 
-**(**__IMAGE PLACEHOLDER: Item Feed / Lost & Found list mockup — e.g. `docs/images/mockup-feed-v2.png`__**)**
-
----
-
-### Report Lost Item
-
-From the navigation, users can choose **“Report Lost Item”**.
-
-The form allows them to submit:
-
-- Category (ID, bottle, electronics, etc.)  
-- Description (color, brand, stickers, unique markings)  
-- Last known location and approximate time  
-- Optional photo of the item  
-
-**(**__IMAGE PLACEHOLDER: Report Lost Item form mockup — e.g. `docs/images/mockup-report-lost-v2.png`__**)**
+**(**__IMAGE PLACEHOLDER: Item Feed mockup — `mockup-feed-v2.png`__**)**
 
 ---
 
-### Report Found Item
+## Report Lost Item
 
-If someone finds an item, they can choose **“Report Found Item”**.
+A simple form that allows users to report something they lost:
 
-They fill in:
+- Category  
+- Description  
+- Last location  
+- Optional photo  
 
-- Where and when the item was found  
-- Where they turned it in (e.g. Campus Center, Library)  
-- A short description and optional photo  
-
-This allows the owner to confirm it’s theirs without forcing a direct meetup.
-
-**(**__IMAGE PLACEHOLDER: Report Found Item form mockup — e.g. `docs/images/mockup-report-found-v2.png`__**)**
+**(**__IMAGE PLACEHOLDER: Lost Item form mockup — `mockup-report-lost-v2.png`__**)**
 
 ---
 
-### FAQ
+## Report Found Item
 
-The FAQ page explains the common questions students actually have, such as:
+Finders can report items they turn in:
 
-- “What should I do if I lost something on campus?”  
-- “What should I do if I find something?”  
-- “Where do I go to pick up items?”  
-- “How long are items kept before they’re donated or handled differently?”  
-- “Is my name or email visible to other users?”
+- Where it was found  
+- Where it was turned in  
+- Photo / description  
 
-**(**__IMAGE PLACEHOLDER: FAQ page mockup, showing questions & answers — e.g. `docs/images/mockup-faq-v2.png`__**)**
+**(**__IMAGE PLACEHOLDER: Found Item form mockup — `mockup-report-found-v2.png`__**)**
 
 ---
 
-## Mockups
+## FAQ
 
-When you have your final screenshots, you can add them under `/docs/images/` and replace the placeholders above with actual image tags, for example:
+Explains:
 
-```md
-![Landing Page](images/mockup-landing-v2.png)
-Planned mockups:
+- How to report lost items  
+- How to report found items  
+- Where to pick up items  
+- How long items stay on file  
+- Privacy and safety rules  
 
-Landing Page
+**(**__IMAGE PLACEHOLDER: FAQ Page mockup — `mockup-faq-v2.png`__**)**
 
-(IMAGE PLACEHOLDER: Final landing page screenshot)
+---
 
-Sign In / UH Login
+# Mockups
 
-(IMAGE PLACEHOLDER: UH login flow screenshot)
+These placeholders will be replaced once final UI screenshots are exported.
 
-Item Feed
+- **Landing Page** — (**IMAGE PLACEHOLDER**)  
+- **Sign In / UH Login** — (**IMAGE PLACEHOLDER**)  
+- **Item Feed** — (**IMAGE PLACEHOLDER**)  
+- **Report Lost Item** — (**IMAGE PLACEHOLDER**)  
+- **Report Found Item** — (**IMAGE PLACEHOLDER**)  
+- **FAQ** — (**IMAGE PLACEHOLDER**)  
+- **(Optional) Data Model Diagram** — (**IMAGE PLACEHOLDER**)  
 
-(IMAGE PLACEHOLDER: Feed with Lost & Found items)
+---
 
-Report Lost Item
+# Architecture Overview
 
-(IMAGE PLACEHOLDER: Lost Item form)
+Milestone 1 focuses entirely on UI and user flow, not backend infrastructure.
 
-Report Found Item
+Conceptual components:
 
-(IMAGE PLACEHOLDER: Found Item form)
+- **Items** — lost/found posts with category, description, location, photo, status  
+- **Users** — UH-authenticated students/staff  
+- **Locations** — campus drop-off and pick-up points  
+- **Content** — static FAQ + instructions  
 
-FAQ / Recovery Flow
+Future milestones will expand this into full backend services.
 
-(IMAGE PLACEHOLDER: FAQ or recovery steps UI)
+---
 
-Architecture Overview
+# Development History
 
-For Milestone 1, the focus is on flow and interface rather than full backend implementation.
+We follow issue-driven project management.
 
-Conceptually, the app revolves around:
+## Milestone 1 (M1): Mockups & Project Page
 
-Items – Lost and found posts with category, description, location, image, and state
+### ✔️ Completed  
+- Landing page mockup  
+- Item feed mockup  
+- Login mockups  
+- Initial project page  
 
-Users – UH-authenticated students/staff tied to the items they post
+### 🔧 In Progress  
+- Lost Item form mockup  
+- Found Item form mockup  
+- FAQ page mockup  
+- UH Login integration planning  
+- Updating this project page  
 
-Locations – Drop-off and pickup locations (e.g., Campus Center, Library)
+Milestone 1 goal: finalize **flow + design** before implementation.
 
-Content – FAQ pages and help text explaining the process
+---
 
-The actual database schema and API design will be refined in later milestones.
+# Future Enhancements
 
-If needed, a future version of this page can include a detailed ER diagram or data model:
+- Admin dashboard  
+- Smart Lost/Found matching  
+- Email or in-app notifications  
+- Map view for common found locations  
+- Recovery statistics:  
+  > “X items reunited this semester”
 
-(IMAGE PLACEHOLDER: Future data model / ER diagram (optional))
+**(**__IMAGE PLACEHOLDER: Future stats or map mockup__**)**
 
-Development History
+---
 
-We use issue-driven project management and milestones.
-
-Milestone 1 (M1): Mockups & Project Page
-
-Done
-
-Implement landing page mockup
-
-Implement lost/found feed mockup
-
-Implement login mockups (user/admin concept)
-
-Create initial project page
-
-In Progress
-
-Implement Lost Item form mockup
-
-Implement Found Item form mockup
-
-Implement FAQ page mockup
-
-Hook landing page up to UH login (design + integration planning)
-
-Refine and update this project page to reflect the current app
-
-Milestone 1 is about getting the look, feel, and flow right before wiring everything up to a real backend.
-
-Future Enhancements
-
-Some ideas we’d like to explore next:
-
-Simple admin dashboard for UH staff
-
-Smarter matching between Lost and Found posts
-
-Email notifications or in-app alerts for likely matches
-
-Map view for visualizing where items are commonly found
-
-(IMAGE PLACEHOLDER: Future “stats” or “map view” mockup (optional))
-
-“Recovered items” stats like:
-
-“X items reunited with their owners this semester”
-
-Team
+# Team
 
 Manoa Lost & Found is designed and developed by UH Mānoa students:
 
-Jermaine Bruno
-
-Michael Lau
-
-Brandon Nguyen
-
-Edward Uzueta
-
-Justin Lai
+- **Jermaine Bruno**  
+- **Michael Lau**  
+- **Brandon Nguyen**  
+- **Edward Uzueta**  
+- **Justin Lai**
