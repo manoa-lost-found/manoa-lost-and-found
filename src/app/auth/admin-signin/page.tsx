@@ -1,4 +1,4 @@
-// src/app/auth/signin/page.tsx
+// src/app/auth/admin-signin/page.tsx
 /* eslint-disable jsx-a11y/label-has-associated-control */
 
 'use client';
@@ -7,9 +7,8 @@ import { FormEvent, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-export default function SignInPage() {
+export default function AdminSignInPage() {
   const router = useRouter();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -26,11 +25,11 @@ export default function SignInPage() {
 
     setSubmitting(true);
 
-    const res = await signIn('credentials', {
+    const res = await signIn('admin-credentials', {
       redirect: false,
       email,
       password,
-      callbackUrl: '/',
+      callbackUrl: '/admin', // change later if you want
     });
 
     setSubmitting(false);
@@ -42,21 +41,28 @@ export default function SignInPage() {
 
     if (res.error) {
       if (res.error === 'EmailNotVerified') {
-        setError('Please verify your email before signing in.');
+        setError('Please verify your email before signing in as an admin.');
       } else if (res.error === 'InvalidDomain') {
         setError('You must use a @hawaii.edu email address.');
+      } else if (res.error === 'NotAdmin') {
+        setError('This account is not an admin account.');
+      } else if (res.error === 'NotWhitelisted') {
+        setError(
+          'This admin account is not allowed to sign in on this site.',
+        );
       } else {
-        setError('Invalid email or password.');
+        setError('Invalid admin credentials.');
       }
       return;
     }
 
-    router.push(res.url ?? '/');
+    // Success
+    router.push(res.url ?? '/admin');
   };
 
   return (
     <main className="container py-5" style={{ maxWidth: 480 }}>
-      <h1 className="text-center mb-4">Sign In</h1>
+      <h1 className="text-center mb-4">Admin Sign In</h1>
 
       <form
         onSubmit={handleSubmit}
@@ -70,7 +76,7 @@ export default function SignInPage() {
 
         <div className="mb-3">
           <label htmlFor="email" className="form-label">
-            UH Email
+            Admin UH Email
           </label>
           <input
             id="email"
@@ -104,21 +110,13 @@ export default function SignInPage() {
           className="btn btn-primary w-100"
           disabled={submitting}
         >
-          {submitting ? 'Signing in…' : 'Sign In'}
+          {submitting ? 'Signing in…' : 'Sign In as Admin'}
         </button>
 
         <p className="mt-3 mb-0 text-center">
-          Don&apos;t have an account?
+          Not an admin?
           {' '}
-          <a href="/auth/signup">Sign up</a>
-          .
-        </p>
-
-        {/* 👇 Added this */}
-        <p className="mt-2 mb-0 text-center">
-          Admin?
-          {' '}
-          <a href="/auth/admin-signin">Sign in here</a>
+          <a href="/auth/signin">Go to user sign in</a>
           .
         </p>
       </form>
