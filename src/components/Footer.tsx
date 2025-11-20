@@ -1,20 +1,29 @@
-import { Col, Container } from 'react-bootstrap';
+export default function Footer() {
+  return (
+    <footer className="mt-5 py-4" style={{ backgroundColor: '#f0f7f4' }}>
+      <div className="container">
+        <p className="mb-1 fw-bold">Manoa Lost &amp; Found</p>
+        <p className="mb-1">University of Hawaiʻi at Mānoa</p>
+        <p className="mb-3">Honolulu, HI 96822</p>
 
-/** The Footer appears at the bottom of every page. Rendered by the App Layout component. */
-const Footer = () => (
-  <footer className="mt-auto py-3 bg-light">
-    <Container>
-      <Col className="text-center">
-        Manoa Lost & Found
-        <br />
-        University of Hawaii
-        <br />
-        Honolulu, HI 96822
-        <br />
-        <a href="https://manoa-lost-found.github.io/manoa-lost-found/">Github Page</a>
-      </Col>
-    </Container>
-  </footer>
-);
+        <p className="mb-2">
+          Helping UH students reconnect with lost items across campus.
+          <br />
+          For questions or bug reports, please open an issue on GitHub.
+        </p>
 
-export default Footer;
+        <p className="mb-1">© 2025 Manoa Lost &amp; Found</p>
+        <p className="mb-3">Not an official UH service — for educational use.</p>
+
+        <a
+          href="https://github.com/manoa-lost-and-found"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fw-bold text-decoration-none"
+        >
+          GitHub Page
+        </a>
+      </div>
+    </footer>
+  );
+}
