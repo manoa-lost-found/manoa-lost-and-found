@@ -16,7 +16,7 @@ export default function Footer() {
         <p className="mb-3">Not an official UH service — for educational use.</p>
 
         <a
-          href="https://github.com/manoa-lost-and-found"
+          href="https://github.com/manoa-lost-found/manoa-lost-and-found"
           target="_blank"
           rel="noopener noreferrer"
           className="fw-bold text-decoration-none"
