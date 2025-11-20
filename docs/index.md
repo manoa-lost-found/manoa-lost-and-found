@@ -1,5 +1,49 @@
-<div style="background: linear-gradient(135deg,#f1f7f4,#e4f0ea); min-height: 100vh; padding: 3.5rem 0 4rem;">
-  <div style="max-width: 960px; margin: 0 auto; padding: 0 1.5rem;">
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: linear-gradient(135deg,#f1f7f4,#e4f0ea);
+    color: #0f172a;
+  }
+
+  /* Hide the default GitHub Pages header */
+  body > header {
+    display: none;
+  }
+
+  /* Main content container */
+  #content, main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 4rem;
+  }
+
+  h1, h2, h3 {
+    color: #022c22;
+  }
+
+  a {
+    color: #14532d;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  code {
+    background: #e4f0ea;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #cbd5e1;
+    margin: 2rem 0;
+  }
+</style>
 
 # Manoa Lost & Found
 
@@ -129,11 +173,11 @@ This section mirrors the main flows of the app.
 
 The landing page introduces the app and sets the tone:
 
-- Hero text (ex: “Find it. Report it. Reunite it.”)  
+- Hero text like “**Find it. Report it. Reunite it.**”  
 - Short explanation of what the app does  
-- Prominent button like **“Login with UH SSO”**  
+- Prominent button such as **“Login with UH SSO”**  
 
-**(**__IMAGE PLACEHOLDER: Landing Page mockup screenshot — save later as `docs/images/mockup-landing-v2.png`__**)**
+**(**__IMAGE PLACEHOLDER: Landing Page mockup screenshot — e.g. `docs/images/mockup-landing-v2.png`__**)**
 
 ---
 
@@ -300,7 +344,7 @@ Email notifications or in-app alerts for likely matches
 
 Map view for visualizing where items are commonly found
 
-(IMAGE PLACEHOLDER: Future “stats” or “map view” mockup (optional)**)
+(IMAGE PLACEHOLDER: Future “stats” or “map view” mockup (optional))
 
 “Recovered items” stats like:
 
@@ -319,6 +363,3 @@ Brandon Nguyen
 Edward Uzueta
 
 Justin Lai
-
-</div>
-</div> ```
