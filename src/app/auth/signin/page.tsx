@@ -3,39 +3,17 @@
 
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function SignInPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const urlError = searchParams.get('error');
-
-  // Map NextAuth ?error=... into a friendly message (no nested ternary)
-  useEffect(() => {
-    if (!urlError) return;
-
-    let msg: string | null = null;
-
-    if (urlError === 'CredentialsSignin') {
-      msg = 'Invalid email or password.';
-    } else if (urlError === 'EmailNotVerified') {
-      msg = 'Please verify your email before signing in.';
-    } else if (urlError === 'InvalidDomain') {
-      msg = 'You must use a @hawaii.edu email address.';
-    }
-
-    if (msg) {
-      setError(msg);
-    }
-  }, [urlError]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
