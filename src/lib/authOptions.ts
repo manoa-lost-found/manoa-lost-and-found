@@ -1,8 +1,10 @@
+// src/lib/authOptions.ts
 /* eslint-disable arrow-body-style */
 import { compare } from 'bcrypt';
 import { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
+import isHawaiiEmail from '@/lib/isHawaiiEmail';
 
 const authOptions: NextAuthOptions = {
   session: {
@@ -15,7 +17,7 @@ const authOptions: NextAuthOptions = {
         email: {
           label: 'Email',
           type: 'email',
-          placeholder: 'john@foo.com',
+          placeholder: 'you@hawaii.edu',
         },
         password: { label: 'Password', type: 'password' },
       },
@@ -23,18 +25,34 @@ const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials.password) {
           return null;
         }
+
+        const email = credentials.email.trim().toLowerCase();
+
+        // Extra guard: only allow @hawaii.edu at the auth layer
+        if (!isHawaiiEmail(email)) {
+          throw new Error('InvalidDomain');
+        }
+
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
+          where: { email },
         });
+
         if (!user) {
           return null;
         }
 
-        const isPasswordValid = await compare(credentials.password, user.password);
+        const isPasswordValid = await compare(
+          credentials.password,
+          user.password,
+        );
         if (!isPasswordValid) {
           return null;
+        }
+
+        // Reject unverified users
+        if (!user.emailVerified) {
+          // NextAuth will redirect back to signIn page with an error
+          throw new Error('EmailNotVerified');
         }
 
         return {
@@ -48,13 +66,17 @@ const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/signin',
     signOut: '/auth/signout',
-    //   error: '/auth/error',
-    //   verifyRequest: '/auth/verify-request',
-    //   newUser: '/auth/new-user'
+    // error: '/auth/error',
+    // verifyRequest: '/auth/verify-request',
+    // newUser: '/auth/new-user'
   },
   callbacks: {
+    // Extra safety: if somehow a non-UH email appears, block it
+    async signIn({ user }) {
+      if (!user?.email) return false;
+      return isHawaiiEmail(user.email);
+    },
     session: ({ session, token }) => {
-      // console.log('Session Callback', { session, token })
       return {
         ...session,
         user: {
@@ -65,9 +87,8 @@ const authOptions: NextAuthOptions = {
       };
     },
     jwt: ({ token, user }) => {
-      // console.log('JWT Callback', { token, user })
       if (user) {
-        const u = user as unknown as any;
+        const u = user as any;
         return {
           ...token,
           id: u.id,

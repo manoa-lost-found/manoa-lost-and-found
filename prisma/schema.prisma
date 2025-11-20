@@ -1,8 +1,6 @@
+// prisma/schema.prisma
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -10,9 +8,9 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  // for local development
+  // For local development:
   // url      = env("DATABASE_URL")
-  // for Vercel
+  // For Vercel (Neon / Vercel Postgres):
   url       = env("POSTGRES_PRISMA_URL")
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
@@ -27,6 +25,12 @@ model User {
   email    String @unique
   password String
   role     Role   @default(USER)
+
+  // null = not verified yet, non-null = verified at this time
+  emailVerified DateTime?
+
+  // Relation to email verification tokens
+  verificationTokens EmailVerificationToken[]
 }
 
 enum Condition {
@@ -42,4 +46,16 @@ model Stuff {
   quantity  Int
   condition Condition @default(good)
   owner     String
+}
+
+model EmailVerificationToken {
+  id    Int    @id @default(autoincrement())
+  token String @unique
+
+  // Which user this token belongs to
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // When this token expires (after this time it is invalid)
+  expiresAt DateTime
 }

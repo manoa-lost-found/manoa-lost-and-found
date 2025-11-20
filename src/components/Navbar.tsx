@@ -69,10 +69,7 @@ export default function Navbar() {
           <ul className="navbar-nav align-items-center navbar-nav-right">
             {!loggedIn ? (
               <li className="nav-item">
-                <Link
-                  href="https://authn.hawaii.edu/cas/login"
-                  className="btn app-login-btn"
-                >
+                <Link href="/auth/signin" className="btn app-login-btn">
                   Log In
                 </Link>
               </li>
