@@ -1,5 +1,3 @@
-// src/app/page.tsx
-
 'use client';
 
 import Image from 'next/image';
@@ -94,7 +92,10 @@ export default function HomePage() {
               </p>
 
               <div className="d-flex justify-content-center justify-content-lg-start mt-3">
-                <Link href="/auth/signin" className="btn landing-cta-btn">
+                <Link
+                  href="https://authn.hawaii.edu/cas/login"
+                  className="btn landing-cta-btn"
+                >
                   Login with UH SSO
                 </Link>
               </div>
