@@ -29,9 +29,80 @@ type FeedItem = {
   locationName?: string | null;
 };
 
-const CATEGORY_OPTIONS = ['All', 'Bottle', 'Electronics', 'Clothing', 'Misc'];
-const BUILDING_OPTIONS = ['All', 'POST 309', 'Bilger', 'Hamilton Library'];
-const TERM_OPTIONS = ['All', 'Fall 2025', 'Spring 2026'];
+// Expanded categories for UH Mānoa Lost & Found
+const CATEGORY_OPTIONS = [
+  'All',
+  'Electronics',
+  'Student ID / Cards',
+  'Wallet',
+  'Keys',
+  'Bags / Backpacks',
+  'Clothing',
+  'Drinkware / Bottles',
+  'Books / Notebooks',
+  'Tech Accessories',
+  'Jewelry / Accessories',
+  'Misc',
+];
+
+// Expanded building list for UH Mānoa
+const BUILDING_OPTIONS = [
+  'All',
+  // Academic Buildings
+  'Hamilton Library',
+  'Sinclair Library',
+  'Bilger Hall',
+  'Bilger Addition (BILG)',
+  'Sakamaki Hall',
+  'Moore Hall',
+  'Kuykendall Hall',
+  'Webster Hall',
+  'Art Building',
+  'Music Building',
+  'Hemenway Hall',
+  'Saunders Hall',
+  'Watanabe Hall',
+  'Physical Science Building',
+  'Edmondson Hall',
+  'Holmes Hall (Engineering)',
+  'Dean Hall',
+  'Crawford Hall',
+  'Henke Hall',
+  'Gartley Hall',
+  'Miller Hall',
+  'Bachman Hall',
+  'George Hall',
+  'HIG — Hawaiʻi Institute of Geophysics',
+  'POST — Physical Science Building Annex (Pearl Harbor Memorial Bldg.)',
+  'BUSAD — Shidler College of Business',
+  'Hawaii Hall',
+  'Queen Liliʻuokalani Center for Student Services (QLC)',
+  // Science & Research
+  'Biomedical Sciences Building (BIOMED)',
+  'Agricultural Sciences (AGSCI)',
+  'St. John Plant Science Lab',
+  'Kennedy Theater',
+  // Athletics / Recreation
+  'Warrior Recreation Center (WRC)',
+  'Les Murakami Baseball Stadium',
+  'Stan Sheriff Center',
+  'T.C. Ching Athletic Complex',
+  'Dole Street Recreation Center',
+  'Andrews Outdoor Theater',
+  // Dining / Student Life
+  'Campus Center (CC)',
+  'Paradise Palms',
+  'Gateway Café',
+  'Hale Aloha Café',
+  // Dorms / Residence Halls
+  'Hale Aloha Towers',
+  'Gateway House',
+  'Johnson Hall',
+  'Freenes Hall',
+  'Hale Wainani Towers',
+  'Hale Kahawai',
+  'Hale Laulima',
+];
 
 function statusBadge(status: ItemStatus) {
   if (status === 'OPEN') {
@@ -87,6 +158,43 @@ export default function LostFoundFeedPage() {
 
     load();
   }, []);
+
+  // Build term options dynamically from the data (e.g. 'Fall 2025', 'Spring 2026')
+  const termOptions = useMemo(() => {
+    const set = new Set<string>();
+
+    items.forEach((item) => {
+      if (item.term) {
+        set.add(item.term);
+      }
+    });
+
+    const termOrder: Record<string, number> = {
+      Spring: 1,
+      Summer: 2,
+      Fall: 3,
+    };
+
+    const base = Array.from(set);
+
+    base.sort((a, b) => {
+      const [aSeason, aYearStr] = a.split(' ');
+      const [bSeason, bYearStr] = b.split(' ');
+      const aYear = Number(aYearStr);
+      const bYear = Number(bYearStr);
+
+      if (!Number.isNaN(aYear) && !Number.isNaN(bYear) && aYear !== bYear) {
+        return aYear - bYear;
+      }
+
+      const aOrder = termOrder[aSeason] ?? 99;
+      const bOrder = termOrder[bSeason] ?? 99;
+
+      return aOrder - bOrder;
+    });
+
+    return ['All', ...base];
+  }, [items]);
 
   const filteredItems = useMemo(() => {
     let data = [...items];
@@ -182,7 +290,7 @@ export default function LostFoundFeedPage() {
                   <Card.Title>{item.title}</Card.Title>
                   <Card.Text className="small text-muted mb-2">
                     {item.building}
-                    {' • '}
+                    {' \u2022 '}
                     {item.term}
                   </Card.Text>
                   <Card.Text style={{ minHeight: '3em' }}>
@@ -278,7 +386,7 @@ export default function LostFoundFeedPage() {
                 value={termFilter}
                 onChange={(event) => setTermFilter(event.target.value)}
               >
-                {TERM_OPTIONS.map((option) => (
+                {termOptions.map((option) => (
                   <option key={option}>{option}</option>
                 ))}
               </Form.Select>
