@@ -9,8 +9,9 @@ import Providers from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Manoa Lost and Found',
-  description: 'A platform that connects students of UH Manoa with each other to find lost and found items.',
+  title: 'Manoa Lost & Found',
+  description:
+    'A platform that connects students of UH Manoa with each other to find lost and found items.',
 };
 
 export default function RootLayout({
