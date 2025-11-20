@@ -1,5 +1,5 @@
-title: nextjs-application-template
-description: A template for quickly starting Next.js application development
+title: Manoa Lost and Found
+description: A platform that connects students of UH Manoa with each other to find lost and found items.
 google_analytics:
 show_downloads: true
 theme: jekyll-theme-cayman
