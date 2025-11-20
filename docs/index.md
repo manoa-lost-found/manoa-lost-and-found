@@ -212,3 +212,113 @@ When you have your final screenshots, you can add them under `/docs/images/` and
 
 ```md
 ![Landing Page](images/mockup-landing-v2.png)
+Planned mockups:
+
+Landing Page
+
+(IMAGE PLACEHOLDER: Final landing page screenshot)
+
+Sign In / UH Login
+
+(IMAGE PLACEHOLDER: UH login flow screenshot)
+
+Item Feed
+
+(IMAGE PLACEHOLDER: Feed with Lost & Found items)
+
+Report Lost Item
+
+(IMAGE PLACEHOLDER: Lost Item form)
+
+Report Found Item
+
+(IMAGE PLACEHOLDER: Found Item form)
+
+FAQ / Recovery Flow
+
+(IMAGE PLACEHOLDER: FAQ or recovery steps UI)
+
+Architecture Overview
+
+For Milestone 1, the focus is on flow and interface rather than full backend implementation.
+
+Conceptually, the app revolves around:
+
+Items – Lost and found posts with category, description, location, image, and state
+
+Users – UH-authenticated students/staff tied to the items they post
+
+Locations – Drop-off and pickup locations (e.g., Campus Center, Library)
+
+Content – FAQ pages and help text explaining the process
+
+The actual database schema and API design will be refined in later milestones.
+
+If needed, a future version of this page can include a detailed ER diagram or data model:
+
+(IMAGE PLACEHOLDER: Future data model / ER diagram (optional))
+
+Development History
+
+We use issue-driven project management and milestones.
+
+Milestone 1 (M1): Mockups & Project Page
+
+Done
+
+Implement landing page mockup
+
+Implement lost/found feed mockup
+
+Implement login mockups (user/admin concept)
+
+Create initial project page
+
+In Progress
+
+Implement Lost Item form mockup
+
+Implement Found Item form mockup
+
+Implement FAQ page mockup
+
+Hook landing page up to UH login (design + integration planning)
+
+Refine and update this project page to reflect the current app
+
+Milestone 1 is about getting the look, feel, and flow right before wiring everything up to a real backend.
+
+Future Enhancements
+
+Some ideas we’d like to explore next:
+
+Simple admin dashboard for UH staff
+
+Smarter matching between Lost and Found posts
+
+Email notifications or in-app alerts for likely matches
+
+Map view for visualizing where items are commonly found
+
+(IMAGE PLACEHOLDER: Future “stats” or “map view” mockup (optional)**)
+
+“Recovered items” stats like:
+
+“X items reunited with their owners this semester”
+
+Team
+
+Manoa Lost & Found is designed and developed by UH Mānoa students:
+
+Jermaine Bruno
+
+Michael Lau
+
+Brandon Nguyen
+
+Edward Uzueta
+
+Justin Lai
+
+</div>
+</div> ```
