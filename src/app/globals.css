@@ -216,19 +216,45 @@ body {
   padding-block: 0.6rem;
 }
 
+/* container + collapse need a positioning context for absolute centering */
+.app-navbar .container {
+  position: relative;
+}
+
+.app-navbar .navbar-collapse {
+  display: flex;
+  align-items: center;
+}
+
 .app-brand span {
   font-size: 1rem;
   color: #024731;
 }
 
+/* CENTER GROUP: Home / FAQ
+   Absolutely centered in the navbar, independent of right-side width */
 .app-nav-links {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* RIGHT GROUP: Log In / Account */
+.navbar-nav-right {
+  margin-left: auto;
+  display: flex;
   align-items: center;
 }
+
+/* Nav link styles */
 
 .app-nav-link {
   position: relative;
   padding: 0.25rem 0;
-  margin: 0 0.85rem;
   font-weight: 500;
   font-size: 0.95rem;
   color: #374151;
@@ -253,6 +279,8 @@ body {
   border-radius: 999px;
   background-color: #024731;
 }
+
+/* Login / account buttons */
 
 .app-login-btn {
   border-radius: 999px;
@@ -281,6 +309,8 @@ body {
   color: #036943;
 }
 
+/* Toggler */
+
 .navbar-toggler {
   border-color: transparent;
 }
@@ -289,8 +319,36 @@ body {
   filter: invert(40%);
 }
 
-/* Responsive tweaks */
+@media (min-width: 992px) {
+  .landing-card-lg {
+    height: 400px;
+  }
+}
 
+/* Navbar responsive behavior */
+@media (max-width: 991.98px) {
+  .app-navbar .navbar-collapse {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .app-nav-links {
+    position: static;
+    transform: none;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .navbar-nav-right {
+    margin-left: 0;
+  }
+
+  .app-nav-link-active::after {
+    bottom: -0.3rem;
+  }
+}
+
+/* Responsive tweaks */
 @media (max-width: 991.98px) {
   .landing-main {
     padding-top: 2.5rem;
@@ -335,9 +393,5 @@ body {
   .landing-hero-image-lg {
     height: 260px;
     margin-inline: auto;
-  }
-
-  .app-nav-link-active::after {
-    bottom: -0.3rem;
   }
 }
