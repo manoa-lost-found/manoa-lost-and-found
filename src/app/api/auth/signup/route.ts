@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       },
     });
 
-    // Build verify URL (for both email + dev shortcut)
+    // Build verify URL (used by both email + UI link)
     const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL
       || process.env.NEXTAUTH_URL
       || 'http://localhost:3000';
@@ -67,18 +67,16 @@ export async function POST(req: Request) {
     const baseUrl = rawBaseUrl.replace(/\/$/, '');
     const verifyUrl = `${baseUrl}/auth/verify?token=${encodeURIComponent(token)}`;
 
+    // Try to send an email (in your setup this may log / be limited)
     await sendVerificationEmail(user.email, token);
 
-    // Response payload
-    const body: any = {
+    // Always include the verify link in the response now
+    const body = {
       message:
-        'Account created! Please check your @hawaii.edu email for a verification link.',
+  'Account created! Please check your @hawaii.edu email for a verification link, '
+  + 'or use the button below to verify now.',
+      devVerifyUrl: verifyUrl,
     };
-
-    // In development, include a direct verify link for users
-    if (process.env.NODE_ENV !== 'production') {
-      body.devVerifyUrl = verifyUrl;
-    }
 
     return NextResponse.json(body, { status: 201 });
   } catch (err) {
