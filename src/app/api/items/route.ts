@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
-type ItemType = "LOST" | "FOUND";
-type ItemStatus = "OPEN" | "TURNED_IN" | "WAITING_FOR_PICKUP" | "RECOVERED";
+type ItemType = 'LOST' | 'FOUND';
+type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
 
 export type FeedItem = {
   id: number;
@@ -12,54 +12,54 @@ export type FeedItem = {
   imageUrl?: string | null;
   category: string;
   building: string;
-  term: string; // e.g. "Fall 2025"
-  date: string; // ISO-like date, ex: "2025-11-01"
+  term: string; // e.g. 'Fall 2025'
+  date: string; // e.g. '2025-11-01'
   locationName?: string | null;
 };
 
-// 🔹 In-memory store for now (replace with Prisma later)
+// In-memory items for now. Later: replace with Prisma.
 let items: FeedItem[] = [
   {
     id: 1,
-    title: "Blue Hydroflask with dog stickers",
+    title: 'Blue Hydroflask with dog stickers',
     description:
-      "Blue Hydroflask with straw lid and dog stickers. Small dent on one side.",
-    type: "LOST",
-    status: "OPEN",
-    category: "Bottle",
-    building: "POST 309",
-    term: "Fall 2025",
-    date: "2025-11-01",
-    imageUrl: "/images/sample-hydroflask.jpg",
+      'Blue Hydroflask with straw lid and dog stickers. Small dent on one side.',
+    type: 'LOST',
+    status: 'OPEN',
+    category: 'Bottle',
+    building: 'POST 309',
+    term: 'Fall 2025',
+    date: '2025-11-01',
+    imageUrl: '/images/sample-hydroflask.jpg',
     locationName: null,
   },
   {
     id: 2,
-    title: "AirPods (2nd Gen)",
+    title: 'AirPods (2nd Gen)',
     description:
-      "White AirPods case, slightly scratched. Found under a table near the computers.",
-    type: "FOUND",
-    status: "TURNED_IN",
-    category: "Electronics",
-    building: "Hamilton Library",
-    term: "Fall 2025",
-    date: "2025-10-27",
-    imageUrl: "/images/sample-airpods.jpg",
-    locationName: "Campus Center Information Desk",
+      'White AirPods case, slightly scratched. Found under a table near the computers.',
+    type: 'FOUND',
+    status: 'TURNED_IN',
+    category: 'Electronics',
+    building: 'Hamilton Library',
+    term: 'Fall 2025',
+    date: '2025-10-27',
+    imageUrl: '/images/sample-airpods.jpg',
+    locationName: 'Campus Center Information Desk',
   },
   {
     id: 3,
-    title: "Green UH Hoodie",
+    title: 'Green UH Hoodie',
     description:
-      "Green UH Mānoa hoodie, size L, left on a bench outside Bilger. Looks new.",
-    type: "FOUND",
-    status: "WAITING_FOR_PICKUP",
-    category: "Clothing",
-    building: "Bilger",
-    term: "Spring 2026",
-    date: "2026-01-15",
-    imageUrl: "/images/sample-hoodie.jpg",
-    locationName: "Hamilton Library Front Desk",
+      'Green UH Mānoa hoodie, size L, left on a bench outside Bilger. Looks new.',
+    type: 'FOUND',
+    status: 'WAITING_FOR_PICKUP',
+    category: 'Clothing',
+    building: 'Bilger',
+    term: 'Spring 2026',
+    date: '2026-01-15',
+    imageUrl: '/images/sample-hoodie.jpg',
+    locationName: 'Hamilton Library Front Desk',
   },
 ];
 
@@ -73,30 +73,40 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Basic validation – you can tighten this later
     if (
-      !body.title ||
-      !body.description ||
-      !body.type ||
-      !body.category ||
-      !body.building ||
-      !body.term
+      !body.title
+      || !body.description
+      || !body.type
+      || !body.category
+      || !body.building
+      || !body.term
     ) {
       return NextResponse.json(
-        { error: "Missing required fields." },
-        { status: 400 }
+        { error: 'Missing required fields.' },
+        { status: 400 },
       );
     }
 
-    const type: ItemType = body.type === "FOUND" ? "FOUND" : "LOST";
-    const status: ItemStatus =
-      body.status && ["OPEN", "TURNED_IN", "WAITING_FOR_PICKUP", "RECOVERED"].includes(body.status)
-        ? body.status
-        : type === "LOST"
-        ? "OPEN"
-        : "WAITING_FOR_PICKUP";
+    const type: ItemType = body.type === 'FOUND' ? 'FOUND' : 'LOST';
 
-    const nowIso = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const allowedStatuses: ItemStatus[] = [
+      'OPEN',
+      'TURNED_IN',
+      'WAITING_FOR_PICKUP',
+      'RECOVERED',
+    ];
+
+    let status: ItemStatus;
+
+    if (allowedStatuses.includes(body.status)) {
+      status = body.status as ItemStatus;
+    } else if (type === 'LOST') {
+      status = 'OPEN';
+    } else {
+      status = 'WAITING_FOR_PICKUP';
+    }
+
+    const nowIso = new Date().toISOString().slice(0, 10);
 
     const newItem: FeedItem = {
       id: nextId++,
@@ -112,14 +122,14 @@ export async function POST(req: NextRequest) {
       locationName: body.locationName ?? null,
     };
 
-    items.unshift(newItem); // newest at top
+    items = [newItem, ...items];
 
     return NextResponse.json({ item: newItem }, { status: 201 });
   } catch (err) {
-    console.error("Error in POST /api/items:", err);
+    console.error('Error in POST /api/items:', err);
     return NextResponse.json(
-      { error: "Failed to create item." },
-      { status: 500 }
+      { error: 'Failed to create item.' },
+      { status: 500 },
     );
   }
 }
