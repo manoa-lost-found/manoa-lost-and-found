@@ -5,20 +5,26 @@ import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 
-const MAIN_LINKS = [
-  { href: '/', label: 'Home' },
-  { href: '/faq', label: 'FAQ' },
-];
-
 export default function Navbar() {
   const { data: session, status } = useSession();
   const loggedIn = status === 'authenticated';
   const pathname = usePathname();
 
+  const MAIN_LINKS = loggedIn
+    ? [
+      { href: '/', label: 'Home' },
+      { href: '/faq', label: 'FAQ' },
+      { href: '/list', label: 'Items Feed' }, // ✔ Updated here
+      { href: '/report/lost', label: 'Report Lost' },
+      { href: '/report/found', label: 'Report Found' },
+    ]
+    : [
+      { href: '/', label: 'Home' },
+      { href: '/faq', label: 'FAQ' },
+    ];
+
   const isActive = (href: string) => {
-    if (href === '/') {
-      return pathname === '/';
-    }
+    if (href === '/') return pathname === '/';
     return pathname.startsWith(href);
   };
 
@@ -26,10 +32,7 @@ export default function Navbar() {
     <nav className="navbar navbar-expand-lg app-navbar">
       <div className="container">
         {/* Brand */}
-        <Link
-          href="/"
-          className="navbar-brand d-flex align-items-center app-brand"
-        >
+        <Link href="/" className="navbar-brand d-flex align-items-center app-brand">
           <Image src="/uh-logo.png" alt="UH Logo" width={36} height={36} />
           <span className="ms-2 fw-semibold">Manoa Lost &amp; Found</span>
         </Link>
@@ -47,9 +50,7 @@ export default function Navbar() {
           <span className="navbar-toggler-icon" />
         </button>
 
-        {/* Links + right-side actions */}
         <div className="collapse navbar-collapse" id="appNavbar">
-          {/* Center links */}
           <ul className="navbar-nav app-nav-links">
             {MAIN_LINKS.map((link) => (
               <li className="nav-item" key={link.href}>
@@ -65,14 +66,10 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* Right side: login / account */}
           <ul className="navbar-nav align-items-center navbar-nav-right">
             {!loggedIn ? (
               <li className="nav-item">
-                <Link
-                  href="https://authn.hawaii.edu/cas/login"
-                  className="btn app-login-btn"
-                >
+                <Link href="/auth/signin" className="btn app-login-btn">
                   Log In
                 </Link>
               </li>
@@ -87,10 +84,7 @@ export default function Navbar() {
                 >
                   {session?.user?.email ?? 'Account'}
                 </button>
-                <ul
-                  className="dropdown-menu dropdown-menu-end"
-                  aria-labelledby="userDropdown"
-                >
+                <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                   <li>
                     <button
                       type="button"
