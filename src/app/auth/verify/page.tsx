@@ -1,19 +1,21 @@
 // src/app/auth/verify/page.tsx
-/* eslint-disable lines-around-directive */
+/* eslint-disable jsx-a11y/label-has-associated-control */
 
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function VerifyPage() {
+type Status = 'loading' | 'success' | 'error';
+
+function VerifyInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
 
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<Status>('loading');
   const [message, setMessage] = useState('');
-  const hasVerifiedRef = useRef(false); // prevent duplicate requests
+  const hasVerifiedRef = useRef(false);
 
   useEffect(() => {
     if (hasVerifiedRef.current) return;
@@ -76,5 +78,24 @@ export default function VerifyPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense
+      fallback={(
+        <main
+          className="d-flex justify-content-center align-items-center"
+          style={{ minHeight: '60vh' }}
+        >
+          <div className="text-center">
+            <p className="text-muted">Loading verification...</p>
+          </div>
+        </main>
+      )}
+    >
+      <VerifyInner />
+    </Suspense>
   );
 }
