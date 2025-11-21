@@ -13,12 +13,12 @@ export type FeedItem = {
   category: string;
   building: string;
   term: string; // e.g. 'Fall 2025'
-  date: string; // e.g. '2025-11-01'
+  date: string; // ISO-like date, ex: '2025-11-01'
   locationName?: string | null;
 };
 
-// In-memory items for now. Later: replace with Prisma.
-let items: FeedItem[] = [
+// 🔹 In-memory store for now (replace with Prisma later)
+const items: FeedItem[] = [
   {
     id: 1,
     title: 'Blue Hydroflask with dog stickers',
@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    // Basic validation – you can tighten this later
     if (
       !body.title
       || !body.description
@@ -89,24 +90,17 @@ export async function POST(req: NextRequest) {
 
     const type: ItemType = body.type === 'FOUND' ? 'FOUND' : 'LOST';
 
-    const allowedStatuses: ItemStatus[] = [
-      'OPEN',
-      'TURNED_IN',
-      'WAITING_FOR_PICKUP',
-      'RECOVERED',
-    ];
-
+    // Determine status explicitly to avoid nested ternary
     let status: ItemStatus;
-
-    if (allowedStatuses.includes(body.status)) {
-      status = body.status as ItemStatus;
+    if (body.status && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)) {
+      status = body.status;
     } else if (type === 'LOST') {
       status = 'OPEN';
     } else {
       status = 'WAITING_FOR_PICKUP';
     }
 
-    const nowIso = new Date().toISOString().slice(0, 10);
+    const nowIso = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
     const newItem: FeedItem = {
       id: nextId++,
@@ -122,7 +116,7 @@ export async function POST(req: NextRequest) {
       locationName: body.locationName ?? null,
     };
 
-    items = [newItem, ...items];
+    items.unshift(newItem); // newest at top
 
     return NextResponse.json({ item: newItem }, { status: 201 });
   } catch (err) {
