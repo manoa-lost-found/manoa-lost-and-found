@@ -8,9 +8,6 @@ import { usePathname } from 'next/navigation';
 const MAIN_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/faq', label: 'FAQ' },
-  { href: '/list', label: 'L&F Feed' },
-  { href: '/add/lost', label: 'Report Lost Item' },
-  { href: '/add/found', label: 'Report Found Item' },
 ];
 
 export default function Navbar() {

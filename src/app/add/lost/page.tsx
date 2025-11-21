@@ -1,42 +1,27 @@
-"use client";
+'use client';
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-
-type ItemType = "LOST" | "FOUND";
-type ItemStatus = "OPEN" | "TURNED_IN" | "WAITING_FOR_PICKUP" | "RECOVERED";
-
-type FeedItem = {
-  id: number;
-  title: string;
-  description: string;
-  type: ItemType;
-  status: ItemStatus;
-  imageUrl?: string | null;
-  category: string;
-  building: string;
-  term: string;
-  date: string;
-  locationName?: string | null;
-};
+import { FormEvent, useState, type ChangeEvent } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function AddLostPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "Misc",
-    building: "POST 309",
-    term: "Fall 2025",
-    date: "",
+    title: '',
+    description: '',
+    category: 'Misc',
+    building: 'POST 309',
+    term: 'Fall 2025',
+    date: '',
     imageUrl: null as string | null,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -45,7 +30,7 @@ export default function AddLostPage() {
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -67,15 +52,15 @@ export default function AddLostPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/items", {
-        method: "POST",
+      const response = await fetch('/api/items', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
-          type: "LOST",
+          type: 'LOST',
           category: formData.category,
           building: formData.building,
           term: formData.term,
@@ -85,23 +70,23 @@ export default function AddLostPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit item");
+        throw new Error('Failed to submit item');
       }
 
-      alert("Item reported successfully!");
+      setSuccessMessage('Item reported successfully!');
       setFormData({
-        title: "",
-        description: "",
-        category: "Misc",
-        building: "POST 309",
-        term: "Fall 2025",
-        date: "",
+        title: '',
+        description: '',
+        category: 'Misc',
+        building: 'POST 309',
+        term: 'Fall 2025',
+        date: '',
         imageUrl: null,
       });
       setImagePreview(null);
-      router.push("/list");
+      router.push('/list');
     } catch (err) {
-      setError((err as Error).message || "Failed to submit item");
+      setError((err as Error).message || 'Failed to submit item');
     } finally {
       setLoading(false);
     }
@@ -112,6 +97,7 @@ export default function AddLostPage() {
       <h1 className="fw-bold">Report Lost Item</h1>
 
       {error && <div className="alert alert-danger">{error}</div>}
+      {successMessage && <div className="alert alert-success">{successMessage}</div>}
 
       <form className="mt-4" onSubmit={handleSubmit}>
         <div className="mb-3">
@@ -225,17 +211,19 @@ export default function AddLostPage() {
           </label>
           {imagePreview && (
             <div className="mt-3">
-              <img
+              <Image
                 src={imagePreview}
                 alt="Preview"
-                style={{ maxWidth: "200px", maxHeight: "200px", objectFit: "cover" }}
+                width={200}
+                height={200}
+                style={{ objectFit: 'cover' }}
+                unoptimized
               />
             </div>
           )}
         </div>
-
         <button type="submit" className="btn btn-success" disabled={loading}>
-          {loading ? "Submitting..." : "Submit"}
+          {loading ? 'Submitting...' : 'Submit'}
         </button>
       </form>
     </div>
