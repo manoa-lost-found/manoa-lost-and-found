@@ -1,25 +1,12 @@
-name: CI
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
 
     env:
-      # App + Auth
       NEXTAUTH_URL: http://127.0.0.1:3000
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-
-      # Database (Neon / Vercel Postgres)
       POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
       DATABASE_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
-
-      # (Add more envs here if your app requires them)
       POSTGRES_DATABASE: ${{ secrets.POSTGRES_DATABASE }}
       POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -56,7 +43,7 @@ jobs:
         run: npm run build
 
       - name: Install Playwright browsers
-        uses: microsoft/playwright-github-action@v1
+        run: npx playwright install --with-deps
 
       - name: Run Playwright tests
         run: npx playwright test
