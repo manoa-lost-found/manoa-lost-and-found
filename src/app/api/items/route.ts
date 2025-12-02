@@ -1,4 +1,9 @@
+// src/app/api/items/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import authOptions from '@/lib/authOptions';
+import { prisma } from '@/lib/prisma';
+import { LostFoundStatus, LostFoundType } from '@prisma/client';
 
 type ItemType = 'LOST' | 'FOUND';
 type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
@@ -13,67 +18,59 @@ export type FeedItem = {
   category: string;
   building: string;
   term: string; // e.g. 'Fall 2025'
-  date: string; // ISO-like date, ex: '2025-11-01'
+  date: string; // 'YYYY-MM-DD'
   locationName?: string | null;
+  ownerEmail: string;
 };
 
-// 🔹 In-memory store for now (replace with Prisma later)
-const items: FeedItem[] = [
-  {
-    id: 1,
-    title: 'Blue Hydroflask with dog stickers',
-    description:
-      'Blue Hydroflask with straw lid and dog stickers. Small dent on one side.',
-    type: 'LOST',
-    status: 'OPEN',
-    category: 'Bottle',
-    building: 'POST 309',
-    term: 'Fall 2025',
-    date: '2025-11-01',
-    imageUrl: '/images/sample-hydroflask.jpg',
-    locationName: null,
-  },
-  {
-    id: 2,
-    title: 'AirPods (2nd Gen)',
-    description:
-      'White AirPods case, slightly scratched. Found under a table near the computers.',
-    type: 'FOUND',
-    status: 'TURNED_IN',
-    category: 'Electronics',
-    building: 'Hamilton Library',
-    term: 'Fall 2025',
-    date: '2025-10-27',
-    imageUrl: '/images/sample-airpods.jpg',
-    locationName: 'Campus Center Information Desk',
-  },
-  {
-    id: 3,
-    title: 'Green UH Hoodie',
-    description:
-      'Green UH Mānoa hoodie, size L, left on a bench outside Bilger. Looks new.',
-    type: 'FOUND',
-    status: 'WAITING_FOR_PICKUP',
-    category: 'Clothing',
-    building: 'Bilger',
-    term: 'Spring 2026',
-    date: '2026-01-15',
-    imageUrl: '/images/sample-hoodie.jpg',
-    locationName: 'Hamilton Library Front Desk',
-  },
-];
-
-let nextId = items.length + 1;
-
+// GET all items for the public feed
 export async function GET() {
-  return NextResponse.json({ items }, { status: 200 });
+  try {
+    const items = await prisma.lostFoundItem.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { owner: true },
+    });
+
+    const feedItems: FeedItem[] = items.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      type: item.type as ItemType,
+      status: item.status as ItemStatus,
+      category: item.category,
+      building: item.building,
+      term: item.term,
+      date: item.date.toISOString().slice(0, 10),
+      imageUrl: item.imageUrl,
+      locationName: item.locationName,
+      ownerEmail: item.owner.email,
+    }));
+
+    return NextResponse.json({ items: feedItems }, { status: 200 });
+  } catch (err) {
+    console.error('Error in GET /api/items:', err);
+    return NextResponse.json(
+      { error: 'Failed to load items.' },
+      { status: 500 },
+    );
+  }
 }
 
+// POST a new lost/found item (must be logged in)
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'You must be signed in to create an item.' },
+        { status: 401 },
+      );
+    }
+
     const body = await req.json();
 
-    // Basic validation – you can tighten this later
+    // Basic validation – same required fields as before
     if (
       !body.title
       || !body.description
@@ -88,37 +85,70 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const type: ItemType = body.type === 'FOUND' ? 'FOUND' : 'LOST';
+    // Find the user in the DB based on the session email
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
 
-    // Determine status explicitly to avoid nested ternary
-    let status: ItemStatus;
-    if (body.status && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)) {
-      status = body.status;
-    } else if (type === 'LOST') {
-      status = 'OPEN';
-    } else {
-      status = 'WAITING_FOR_PICKUP';
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found.' },
+        { status: 404 },
+      );
     }
 
-    const nowIso = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    // Normalize type
+    const type: LostFoundType = body.type === 'FOUND' ? LostFoundType.FOUND : LostFoundType.LOST;
 
-    const newItem: FeedItem = {
-      id: nextId++,
-      title: String(body.title),
-      description: String(body.description),
-      type,
-      status,
-      category: String(body.category),
-      building: String(body.building),
-      term: String(body.term),
-      date: body.date ? String(body.date) : nowIso,
-      imageUrl: body.imageUrl ?? null,
-      locationName: body.locationName ?? null,
+    // Determine status (same logic as before, with Prisma enum)
+    let status: LostFoundStatus;
+    if (
+      body.status
+      && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)
+    ) {
+      status = body.status as LostFoundStatus;
+    } else if (type === LostFoundType.LOST) {
+      status = LostFoundStatus.OPEN;
+    } else {
+      status = LostFoundStatus.WAITING_FOR_PICKUP;
+    }
+
+    const now = new Date();
+    const dateValue = body.date ? new Date(body.date) : now;
+
+    const created = await prisma.lostFoundItem.create({
+      data: {
+        title: String(body.title),
+        description: String(body.description),
+        type,
+        status,
+        category: String(body.category),
+        building: String(body.building),
+        term: String(body.term),
+        date: dateValue,
+        imageUrl: body.imageUrl ?? null,
+        locationName: body.locationName ?? null,
+        ownerId: user.id,
+      },
+      include: { owner: true },
+    });
+
+    const responseItem: FeedItem = {
+      id: created.id,
+      title: created.title,
+      description: created.description,
+      type: created.type as ItemType,
+      status: created.status as ItemStatus,
+      category: created.category,
+      building: created.building,
+      term: created.term,
+      date: created.date.toISOString().slice(0, 10),
+      imageUrl: created.imageUrl,
+      locationName: created.locationName,
+      ownerEmail: created.owner.email,
     };
 
-    items.unshift(newItem); // newest at top
-
-    return NextResponse.json({ item: newItem }, { status: 201 });
+    return NextResponse.json({ item: responseItem }, { status: 201 });
   } catch (err) {
     console.error('Error in POST /api/items:', err);
     return NextResponse.json(
