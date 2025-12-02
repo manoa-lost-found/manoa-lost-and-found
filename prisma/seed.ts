@@ -5,28 +5,59 @@ import * as config from '../config/settings.development.json';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding the database');
-  const password = await hash('changeme', 10);
-  config.defaultAccounts.forEach(async (account) => {
-    const role = account.role as Role || Role.USER;
-    console.log(`  Creating user: ${account.email} with role: ${role}`);
+  console.log('Seeding the database…');
+
+  const passwordHash = await hash('changeme', 10);
+
+  for (const account of config.defaultAccounts) {
+    const role = (account.role as Role) || Role.USER;
+
+    console.log(`  Creating user from config: ${account.email} (${role})`);
+
     await prisma.user.upsert({
       where: { email: account.email },
       update: {},
       create: {
         email: account.email,
-        password,
+        password: passwordHash,
         role,
+        emailVerified: new Date(),
       },
     });
-    // console.log(`  Created user: ${user.email} with role: ${user.role}`);
+  }
+
+  console.log('  Creating Playwright test users…');
+
+  await prisma.user.upsert({
+    where: { email: 'john@hawaii.edu' },
+    update: {},
+    create: {
+      email: 'john@hawaii.edu',
+      password: passwordHash,
+      role: Role.USER,
+      emailVerified: new Date(),
+    },
   });
+
+  await prisma.user.upsert({
+    where: { email: 'admin@hawaii.edu' },
+    update: {},
+    create: {
+      email: 'admin@hawaii.edu',
+      password: passwordHash,
+      role: Role.ADMIN,
+      emailVerified: new Date(),
+    },
+  });
+
   for (const data of config.defaultData) {
-    const condition = data.condition as Condition || Condition.good;
-    console.log(`  Adding stuff: ${JSON.stringify(data)}`);
-    // eslint-disable-next-line no-await-in-loop
+    const condition = (data.condition as Condition) || Condition.good;
+    const index = config.defaultData.indexOf(data) + 1;
+
+    console.log(`  Adding Stuff item: ${data.name}`);
+
     await prisma.stuff.upsert({
-      where: { id: config.defaultData.indexOf(data) + 1 },
+      where: { id: index },
       update: {},
       create: {
         name: data.name,
@@ -36,7 +67,10 @@ async function main() {
       },
     });
   }
+
+  console.log('Seed complete ✔');
 }
+
 main()
   .then(() => prisma.$disconnect())
   .catch(async (e) => {
