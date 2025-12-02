@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Container, Row, Col, Card, Badge, Form, Spinner } from 'react-bootstrap';
@@ -165,17 +166,25 @@ export default function LostFoundFeedPage() {
                     <Card.Text style={{ minHeight: '3em' }}>{item.description}</Card.Text>
                     {item.locationName && (
                       <Card.Text className="small mb-0">
-                        <strong>Pickup:</strong>
+                        <strong>Pickup: </strong>
                         {item.locationName}
                       </Card.Text>
                     )}
                   </Card.Body>
-                  <Card.Footer className="small text-muted">
-                    {new Date(item.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
+                  <Card.Footer className="d-flex justify-content-between align-items-center small text-muted">
+                    <span>
+                      {new Date(item.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                    <Link
+                      href={`/item/${item.id}`}
+                      className="fw-semibold text-decoration-none"
+                    >
+                      View details →
+                    </Link>
                   </Card.Footer>
                 </Card>
               </Col>
