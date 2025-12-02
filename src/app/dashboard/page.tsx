@@ -91,12 +91,6 @@ export default function DashboardPage() {
     <main className="container py-4">
       <h1 className="fw-bold mb-4">My Dashboard</h1>
 
-      <div className="mb-4">
-        <Link href="/report" className="btn btn-success">
-          + Report New Item
-        </Link>
-      </div>
-
       <section className="mb-5">
         <h2 className="h4 mb-3">My Lost Items</h2>
         {lost.length === 0 ? (
