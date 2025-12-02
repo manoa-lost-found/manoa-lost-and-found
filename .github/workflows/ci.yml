@@ -1,7 +1,14 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-
     env:
       NEXTAUTH_URL: http://127.0.0.1:3000
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
