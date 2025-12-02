@@ -10,11 +10,16 @@ export default function Navbar() {
   const loggedIn = status === 'authenticated';
   const pathname = usePathname();
 
+  // Role comes from authOptions: randomKey = user.role
+  const role = (session?.user as any)?.randomKey;
+  const isAdmin = role === 'ADMIN';
+
   const MAIN_LINKS = loggedIn
     ? [
       { href: '/', label: 'Home' },
       { href: '/faq', label: 'FAQ' },
-      { href: '/list', label: 'Items Feed' }, // ✔ Updated here
+      { href: '/list', label: 'Items Feed' },
+      // My Dashboard removed from here; now lives in dropdown
       { href: '/report/lost', label: 'Report Lost' },
       { href: '/report/found', label: 'Report Found' },
     ]
@@ -51,6 +56,7 @@ export default function Navbar() {
         </button>
 
         <div className="collapse navbar-collapse" id="appNavbar">
+          {/* Left side links */}
           <ul className="navbar-nav app-nav-links">
             {MAIN_LINKS.map((link) => (
               <li className="nav-item" key={link.href}>
@@ -66,6 +72,7 @@ export default function Navbar() {
             ))}
           </ul>
 
+          {/* Right side: account dropdown (+ Admin button if admin) */}
           <ul className="navbar-nav align-items-center navbar-nav-right">
             {!loggedIn ? (
               <li className="nav-item">
@@ -74,28 +81,47 @@ export default function Navbar() {
                 </Link>
               </li>
             ) : (
-              <li className="nav-item dropdown">
-                <button
-                  type="button"
-                  className="nav-link app-account-btn dropdown-toggle border-0 bg-transparent"
-                  id="userDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  {session?.user?.email ?? 'Account'}
-                </button>
-                <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                  <li>
-                    <button
-                      type="button"
-                      className="dropdown-item"
-                      onClick={() => signOut({ callbackUrl: '/' })}
-                    >
-                      Logout
-                    </button>
+              <>
+                {/* Account dropdown */}
+                <li className="nav-item dropdown">
+                  <button
+                    type="button"
+                    className="nav-link app-account-btn dropdown-toggle border-0 bg-transparent"
+                    id="userDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    {session?.user?.email ?? 'Account'}
+                  </button>
+                  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    {/* My Dashboard inside dropdown */}
+                    <li>
+                      <Link href="/dashboard" className="dropdown-item">
+                        My Dashboard
+                      </Link>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <button
+                        type="button"
+                        className="dropdown-item"
+                        onClick={() => signOut({ callbackUrl: '/' })}
+                      >
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                </li>
+
+                {/* Admin button to the RIGHT of the email dropdown */}
+                {isAdmin && (
+                  <li className="nav-item ms-2">
+                    <Link href="/admin" className="btn btn-outline-secondary btn-sm">
+                      Admin
+                    </Link>
                   </li>
-                </ul>
-              </li>
+                )}
+              </>
             )}
           </ul>
         </div>

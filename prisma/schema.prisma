@@ -31,6 +31,8 @@ model User {
 
   // Relation to email verification tokens
   verificationTokens EmailVerificationToken[]
+
+  lostFoundItems LostFoundItem[]
 }
 
 enum Condition {
@@ -58,4 +60,36 @@ model EmailVerificationToken {
 
   // When this token expires (after this time it is invalid)
   expiresAt DateTime
+}
+
+enum LostFoundType {
+  LOST
+  FOUND
+}
+
+enum LostFoundStatus {
+  OPEN
+  TURNED_IN
+  WAITING_FOR_PICKUP
+  RECOVERED
+}
+
+model LostFoundItem {
+  id           Int             @id @default(autoincrement())
+  title        String
+  description  String
+  type         LostFoundType
+  status       LostFoundStatus @default(OPEN)
+  imageUrl     String?
+  category     String
+  building     String
+  term         String
+  date         DateTime
+  locationName String?
+
+  owner   User @relation(fields: [ownerId], references: [id])
+  ownerId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

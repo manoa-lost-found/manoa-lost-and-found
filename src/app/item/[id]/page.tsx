@@ -5,22 +5,24 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 
 type ItemType = 'LOST' | 'FOUND';
 type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
 
-type FeedItem = {
+type DetailItem = {
   id: number;
   title: string;
   description: string;
   type: ItemType;
   status: ItemStatus;
-  imageUrl?: string | null;
   category: string;
   building: string;
   term: string;
   date: string;
+  imageUrl?: string | null;
   locationName?: string | null;
+  ownerId?: number;
 };
 
 function statusLabel(status: ItemStatus) {
@@ -40,36 +42,32 @@ function statusLabel(status: ItemStatus) {
 
 export default function ItemDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [item, setItem] = useState<FeedItem | null>(null);
+  const { data: session } = useSession();
+  const [item, setItem] = useState<DetailItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const numericId = Number(params.id);
+  const currentUserId = Number((session?.user as any)?.id);
+  const role = (session?.user as any)?.randomKey;
+  const isAdmin = role === 'ADMIN';
+  const isOwner = item && currentUserId && item.ownerId === currentUserId;
 
   useEffect(() => {
     async function load() {
       try {
-        setLoading(true);
-        setError(null);
-
-        const res = await fetch('/api/items');
+        const res = await fetch(`/api/items/${numericId}`);
         if (!res.ok) {
-          throw new Error(`Request failed: ${res.status}`);
+          throw new Error('Failed to load item.');
         }
-
         const data = await res.json();
-        const found: FeedItem | undefined = (data.items ?? []).find(
-          (i: FeedItem) => i.id === numericId,
-        );
-
-        if (!found) {
-          setError('Item not found.');
-        } else {
-          setItem(found);
-        }
+        setItem(data.item);
       } catch (err) {
         console.error(err);
-        setError('Failed to load item.');
+        setError((err as Error).message);
       } finally {
         setLoading(false);
       }
@@ -82,6 +80,26 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
       setLoading(false);
     }
   }, [numericId]);
+
+  const handleDeleteConfirmed = async () => {
+    if (!item) return;
+    setDeleting(true);
+    setActionError(null);
+
+    try {
+      const res = await fetch(`/api/items/${numericId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        throw new Error('Failed to delete item.');
+      }
+      router.push('/list');
+    } catch (err) {
+      setActionError((err as Error).message);
+      setDeleting(false);
+      setConfirmingDelete(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -157,9 +175,11 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                   {item.building}
                   {' '}
                   •
+                  {' '}
                   {item.term}
                   {' '}
                   •
+                  {' '}
                   {dateLabel}
                 </p>
 
@@ -182,14 +202,52 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                   )}
                 </dl>
 
-                <div className="d-flex gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => router.push('/list')}
-                  >
-                    Back to Lost/Found feed
-                  </button>
+                <div className="d-flex flex-column gap-2">
+                  <div className="d-flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => router.push('/list')}
+                    >
+                      Back to Lost/Found feed
+                    </button>
+
+                    {(isAdmin || isOwner) && !confirmingDelete && (
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => setConfirmingDelete(true)}
+                        disabled={deleting}
+                      >
+                        Delete post
+                      </button>
+                    )}
+
+                    {(isAdmin || isOwner) && confirmingDelete && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          onClick={handleDeleteConfirmed}
+                          disabled={deleting}
+                        >
+                          {deleting ? 'Deleting…' : 'Confirm delete'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => setConfirmingDelete(false)}
+                          disabled={deleting}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {actionError && (
+                    <p className="text-danger small mb-0">{actionError}</p>
+                  )}
                 </div>
               </div>
             </div>
