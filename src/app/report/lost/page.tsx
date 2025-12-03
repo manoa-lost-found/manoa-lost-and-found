@@ -1,229 +1,198 @@
 'use client';
 
-import { FormEvent, useState, type ChangeEvent } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useState, ChangeEvent, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
-export default function AddLostPage() {
+const CATEGORY_OPTIONS = [
+  "Bottle",
+  "Clothing",
+  "Electronics",
+  "Wallet",
+  "Keys",
+  "ID",
+  "Jewelry",
+  "Bag",
+  "Misc",
+];
+
+const BUILDINGS = [
+  "Hamilton Library",
+  "POST Building",
+  "Bilger Hall",
+  "Campus Center",
+  "Gateway House",
+  "Sakamaki Hall",
+  "Keller Hall",
+  "Sinclair Library",
+  "Art Building",
+  "BusAd",
+  "Paradise Palms",
+  "Other",
+];
+
+export default function ReportLostPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: 'Misc',
-    building: 'POST 309',
-    term: 'Fall 2025',
-    date: '',
+    title: "",
+    description: "",
+    category: "Misc",
+    building: "Hamilton Library",
+    date: "",
     imageUrl: null as string | null,
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const [preview, setPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  function handleChange(
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  }
+
+  function handleImageChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setFormData((prev) => ({
-          ...prev,
-          imageUrl: dataUrl,
-        }));
-        setImagePreview(dataUrl);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, imageUrl: reader.result as string }));
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      const response = await fetch('/api/items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const res = await fetch("/api/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          type: 'LOST',
-          category: formData.category,
-          building: formData.building,
-          term: formData.term,
-          date: formData.date,
-          imageUrl: formData.imageUrl || null,
+          ...formData,
+          type: "LOST",
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit item');
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error || "Failed to submit item");
       }
 
-      setSuccessMessage('Item reported successfully!');
-      setFormData({
-        title: '',
-        description: '',
-        category: 'Misc',
-        building: 'POST 309',
-        term: 'Fall 2025',
-        date: '',
-        imageUrl: null,
-      });
-      setImagePreview(null);
-      router.push('/list');
-    } catch (err) {
-      setError((err as Error).message || 'Failed to submit item');
+      setSuccess("Item submitted successfully!");
+      router.push("/list");
+    } catch (err: any) {
+      setError(err.message || "Failed to submit item");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="container mt-4">
       <h1 className="fw-bold">Report Lost Item</h1>
 
-      {error && <div className="alert alert-danger">{error}</div>}
-      {successMessage && <div className="alert alert-success">{successMessage}</div>}
+      {error && <div className="alert alert-danger mt-3">{error}</div>}
+      {success && <div className="alert alert-success mt-3">{success}</div>}
 
       <form className="mt-4" onSubmit={handleSubmit}>
+        {/* ITEM NAME */}
         <div className="mb-3">
-          <label htmlFor="lostItemName" className="form-label">
-            Item Name *
-            <input
-              id="lostItemName"
-              name="title"
-              className="form-control"
-              value={formData.title}
-              onChange={handleChange}
-              required
-            />
-          </label>
+          <label className="form-label">Item Name *</label>
+          <input
+            name="title"
+            className="form-control"
+            required
+            value={formData.title}
+            onChange={handleChange}
+          />
         </div>
 
+        {/* DESCRIPTION */}
         <div className="mb-3">
-          <label htmlFor="lostDescription" className="form-label">
-            Description *
-            <textarea
-              id="lostDescription"
-              name="description"
-              className="form-control"
-              value={formData.description}
-              onChange={handleChange}
-              required
-              rows={4}
-            />
-          </label>
+          <label className="form-label">Description *</label>
+          <textarea
+            name="description"
+            className="form-control"
+            rows={4}
+            required
+            value={formData.description}
+            onChange={handleChange}
+          />
         </div>
 
+        {/* CATEGORY */}
         <div className="mb-3">
-          <label htmlFor="lostCategory" className="form-label">
-            Category *
-            <select
-              id="lostCategory"
-              name="category"
-              className="form-control"
-              value={formData.category}
-              onChange={handleChange}
-              required
-            >
-              <option value="Bottle">Bottle</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Clothing">Clothing</option>
-              <option value="Misc">Misc</option>
-            </select>
-          </label>
+          <label className="form-label">Category *</label>
+          <select
+            name="category"
+            className="form-control"
+            value={formData.category}
+            onChange={handleChange}
+          >
+            {CATEGORY_OPTIONS.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
         </div>
 
+        {/* LAST SEEN LOCATION (BUILDING) */}
         <div className="mb-3">
-          <label htmlFor="lostLocation" className="form-label">
-            Last Seen Location (Building) *
-            <select
-              id="lostLocation"
-              name="building"
-              className="form-control"
-              value={formData.building}
-              onChange={handleChange}
-              required
-            >
-              <option value="POST 309">POST 309</option>
-              <option value="Bilger">Bilger</option>
-              <option value="Hamilton Library">Hamilton Library</option>
-            </select>
-          </label>
+          <label className="form-label">Last Seen Location (Building) *</label>
+          <select
+            name="building"
+            className="form-control"
+            value={formData.building}
+            onChange={handleChange}
+          >
+            {BUILDINGS.map((b) => (
+              <option key={b}>{b}</option>
+            ))}
+          </select>
         </div>
 
+        {/* DATE LOST */}
         <div className="mb-3">
-          <label htmlFor="lostTerm" className="form-label">
-            Term *
-            <select
-              id="lostTerm"
-              name="term"
-              className="form-control"
-              value={formData.term}
-              onChange={handleChange}
-              required
-            >
-              <option value="Fall 2025">Fall 2025</option>
-              <option value="Spring 2026">Spring 2026</option>
-            </select>
-          </label>
+          <label className="form-label">Date Lost *</label>
+          <input
+            type="date"
+            name="date"
+            className="form-control"
+            required
+            value={formData.date}
+            onChange={handleChange}
+          />
         </div>
 
+        {/* IMAGE UPLOAD */}
         <div className="mb-3">
-          <label htmlFor="lostDate" className="form-label">
-            Date Lost *
-            <input
-              id="lostDate"
-              name="date"
-              type="date"
-              className="form-control"
-              value={formData.date}
-              onChange={handleChange}
-              required
-            />
-          </label>
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="lostImage" className="form-label">
-            Upload Image (optional)
-            <input
-              id="lostImage"
-              type="file"
-              accept="image/*"
-              className="form-control"
-              onChange={handleImageChange}
-            />
-          </label>
-          {imagePreview && (
+          <label className="form-label">Upload Image (optional)</label>
+          <input
+            type="file"
+            accept="image/*"
+            className="form-control"
+            onChange={handleImageChange}
+          />
+          {preview && (
             <div className="mt-3">
-              <Image
-                src={imagePreview}
+              <img
+                src={preview}
                 alt="Preview"
-                width={200}
-                height={200}
-                style={{ objectFit: 'cover' }}
-                unoptimized
+                style={{ width: 200, height: 200, objectFit: "cover" }}
               />
             </div>
           )}
         </div>
+
+        {/* SUBMIT */}
         <button type="submit" className="btn btn-success" disabled={loading}>
-          {loading ? 'Submitting...' : 'Submit'}
+          {loading ? "Submitting…" : "Submit"}
         </button>
       </form>
     </div>

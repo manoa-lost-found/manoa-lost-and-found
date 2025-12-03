@@ -18,13 +18,40 @@ type FeedItem = {
   category: string;
   building: string;
   term: string;
-  date: string;
+  date: string; // YYYY-MM-DD
   locationName?: string | null;
 };
 
-const CATEGORY_OPTIONS = ['All', 'Bottle', 'Electronics', 'Clothing', 'Misc'];
-const BUILDING_OPTIONS = ['All', 'POST 309', 'Bilger', 'Hamilton Library'];
-const TERM_OPTIONS = ['All', 'Fall 2025', 'Spring 2026'];
+const CATEGORY_OPTIONS = [
+  'All Categories',
+  'Bottle',
+  'Clothing',
+  'Electronics',
+  'Wallet',
+  'Keys',
+  'ID',
+  'Jewelry',
+  'Bag',
+  'Misc',
+];
+
+const BUILDING_OPTIONS = [
+  'All Buildings',
+  'Hamilton Library',
+  'POST Building',
+  'Bilger Hall',
+  'Campus Center',
+  'Gateway House',
+  'Sakamaki Hall',
+  'Keller Hall',
+  'Sinclair Library',
+  'Art Building',
+  'BusAd',
+  'Paradise Palms',
+  'Other',
+];
+
+const TYPE_OPTIONS = ['All Items', 'Lost Items', 'Found Items'];
 
 function statusBadge(status: ItemStatus) {
   switch (status) {
@@ -52,9 +79,9 @@ export default function LostFoundFeedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [categoryFilter, setCategoryFilter] = useState<string>('All');
-  const [buildingFilter, setBuildingFilter] = useState<string>('All');
-  const [termFilter, setTermFilter] = useState<string>('All');
+  const [categoryFilter, setCategoryFilter] = useState<string>('All Categories');
+  const [buildingFilter, setBuildingFilter] = useState<string>('All Buildings');
+  const [typeFilter, setTypeFilter] = useState<string>('All Items');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   // Load items from the shared API route
@@ -83,14 +110,18 @@ export default function LostFoundFeedPage() {
   const filteredItems = useMemo(() => {
     let data = [...items];
 
-    if (categoryFilter !== 'All') {
+    if (categoryFilter !== 'All Categories') {
       data = data.filter((i) => i.category === categoryFilter);
     }
-    if (buildingFilter !== 'All') {
+
+    if (buildingFilter !== 'All Buildings') {
       data = data.filter((i) => i.building === buildingFilter);
     }
-    if (termFilter !== 'All') {
-      data = data.filter((i) => i.term === termFilter);
+
+    if (typeFilter === 'Lost Items') {
+      data = data.filter((i) => i.type === 'LOST');
+    } else if (typeFilter === 'Found Items') {
+      data = data.filter((i) => i.type === 'FOUND');
     }
 
     data.sort((a, b) => {
@@ -101,7 +132,7 @@ export default function LostFoundFeedPage() {
     });
 
     return data;
-  }, [items, categoryFilter, buildingFilter, termFilter, sortOrder]);
+  }, [items, categoryFilter, buildingFilter, typeFilter, sortOrder]);
 
   const feedContent = (() => {
     if (loading) {
@@ -147,11 +178,12 @@ export default function LostFoundFeedPage() {
                   {item.imageUrl && (
                     <div style={{ width: '100%', height: '180px', overflow: 'hidden', position: 'relative' }}>
                       <Image
-                        src={item.imageUrl as string}
+                        src={item.imageUrl}
                         alt={item.title}
                         fill
                         style={{ objectFit: 'cover' }}
                         sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
+                        unoptimized
                       />
                     </div>
                   )}
@@ -162,7 +194,9 @@ export default function LostFoundFeedPage() {
                     </div>
 
                     <Card.Title>{item.title}</Card.Title>
-                    <Card.Text className="small text-muted mb-2">{`${item.building} • ${item.term}`}</Card.Text>
+                    <Card.Text className="small text-muted mb-2">
+                      {item.building} • {item.term}
+                    </Card.Text>
                     <Card.Text style={{ minHeight: '3em' }}>{item.description}</Card.Text>
                     {item.locationName && (
                       <Card.Text className="small mb-0">
@@ -179,10 +213,7 @@ export default function LostFoundFeedPage() {
                         year: 'numeric',
                       })}
                     </span>
-                    <Link
-                      href={`/item/${item.id}`}
-                      className="fw-semibold text-decoration-none"
-                    >
+                    <Link href={`/item/${item.id}`} className="fw-semibold text-decoration-none">
                       View details →
                     </Link>
                   </Card.Footer>
@@ -209,10 +240,16 @@ export default function LostFoundFeedPage() {
           <Col>
             <Card className="border-0 rounded-4 shadow-sm">
               <Card.Body className="py-4 px-4">
-                <p className="text-uppercase text-muted small mb-1">Welcome to Manoa Lost &amp; Found</p>
+                <p className="text-uppercase text-muted small mb-1">
+                  Welcome to Manoa Lost &amp; Found
+                </p>
                 <h1 className="display-5 fw-bold mb-2">Find it. Report it. Reunite it.</h1>
-                <p className="text-muted mb-3">Browse every lost and found item reported across the UH Mānoa campus.</p>
-                <p className="fw-semibold mb-0">You&apos;re viewing the campus-wide Lost/Found feed.</p>
+                <p className="text-muted mb-3">
+                  Browse every lost and found item reported across the UH Mānoa campus.
+                </p>
+                <p className="fw-semibold mb-0">
+                  You&apos;re viewing the campus-wide Lost/Found feed.
+                </p>
               </Card.Body>
             </Card>
           </Col>
@@ -220,10 +257,29 @@ export default function LostFoundFeedPage() {
 
         {/* Filters */}
         <Row className="mb-4 align-items-stretch">
+          {/* Item Type */}
+          <Col md={3} className="mb-3 mb-md-0">
+            <Card body className="h-100 shadow-sm rounded-3">
+              <h6 className="mb-2 fw-semibold">Item Type</h6>
+              <Form.Select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                {TYPE_OPTIONS.map((opt) => (
+                  <option key={opt}>{opt}</option>
+                ))}
+              </Form.Select>
+            </Card>
+          </Col>
+
+          {/* Category */}
           <Col md={3} className="mb-3 mb-md-0">
             <Card body className="h-100 shadow-sm rounded-3">
               <h6 className="mb-2 fw-semibold">Category</h6>
-              <Form.Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+              <Form.Select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
                 {CATEGORY_OPTIONS.map((opt) => (
                   <option key={opt}>{opt}</option>
                 ))}
@@ -231,10 +287,14 @@ export default function LostFoundFeedPage() {
             </Card>
           </Col>
 
+          {/* Building */}
           <Col md={3} className="mb-3 mb-md-0">
             <Card body className="h-100 shadow-sm rounded-3">
               <h6 className="mb-2 fw-semibold">Building</h6>
-              <Form.Select value={buildingFilter} onChange={(e) => setBuildingFilter(e.target.value)}>
+              <Form.Select
+                value={buildingFilter}
+                onChange={(e) => setBuildingFilter(e.target.value)}
+              >
                 {BUILDING_OPTIONS.map((opt) => (
                   <option key={opt}>{opt}</option>
                 ))}
@@ -242,21 +302,16 @@ export default function LostFoundFeedPage() {
             </Card>
           </Col>
 
-          <Col md={3} className="mb-3 mb-md-0">
-            <Card body className="h-100 shadow-sm rounded-3">
-              <h6 className="mb-2 fw-semibold">Term</h6>
-              <Form.Select value={termFilter} onChange={(e) => setTermFilter(e.target.value)}>
-                {TERM_OPTIONS.map((opt) => (
-                  <option key={opt}>{opt}</option>
-                ))}
-              </Form.Select>
-            </Card>
-          </Col>
-
+          {/* Sort */}
           <Col md={3}>
             <Card body className="h-100 shadow-sm rounded-3">
               <h6 className="mb-2 fw-semibold">Sort</h6>
-              <Form.Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}>
+              <Form.Select
+                value={sortOrder}
+                onChange={(e) =>
+                  setSortOrder(e.target.value as 'newest' | 'oldest')
+                }
+              >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
               </Form.Select>
@@ -264,7 +319,7 @@ export default function LostFoundFeedPage() {
           </Col>
         </Row>
 
-        {/* Loading / Error / Feed */}
+        {/* Feed */}
         {feedContent}
       </Container>
     </main>
