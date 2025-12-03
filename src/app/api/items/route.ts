@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import authOptions from '@/lib/authOptions';
 import { prisma } from '@/lib/prisma';
-import { LostFoundStatus, LostFoundType } from '@prisma/client';
+import { LostFoundStatus, LostFoundType, Role } from '@prisma/client';
 
 type ItemType = 'LOST' | 'FOUND';
 type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
@@ -17,13 +17,23 @@ export type FeedItem = {
   imageUrl?: string | null;
   category: string;
   building: string;
-  term: string; // e.g. 'Fall 2025'
-  date: string; // 'YYYY-MM-DD'
+  term: string;
+  date: string;
   locationName?: string | null;
   ownerEmail: string;
 };
 
-// GET all items for the public feed
+// Determine UH term based on date
+function computeTerm(date: Date): string {
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+
+  if (month >= 1 && month <= 5) return `Spring ${year}`;
+  if (month >= 6 && month <= 7) return `Summer ${year}`;
+  return `Fall ${year}`;
+}
+
+// GET all items
 export async function GET() {
   try {
     const items = await prisma.lostFoundItem.findMany({
@@ -31,7 +41,7 @@ export async function GET() {
       include: { owner: true },
     });
 
-    const feedItems: FeedItem[] = items.map((item: any) => ({
+    const feedItems: FeedItem[] = items.map((item) => ({
       id: item.id,
       title: item.title,
       description: item.description,
@@ -49,19 +59,35 @@ export async function GET() {
     return NextResponse.json({ items: feedItems }, { status: 200 });
   } catch (err) {
     console.error('Error in GET /api/items:', err);
-    return NextResponse.json(
-      { error: 'Failed to load items.' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Failed to load items.' }, { status: 500 });
   }
 }
 
-// POST a new lost/found item (must be logged in)
+// POST create item
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    let email = session?.user?.email ?? null;
+
+    // 🔓 Local dev fallback: if not signed in and not production, use a dummy user.
+    if (!email && process.env.NODE_ENV !== 'production') {
+      email = 'localdev@hawaii.edu';
+
+      // Ensure dummy user exists
+      await prisma.user.upsert({
+        where: { email },
+        update: {},
+        create: {
+          email,
+          password: 'localdev', // not actually used
+          role: Role.USER,
+        },
+      });
+    }
+
+    // Still enforce auth in production
+    if (!email) {
       return NextResponse.json(
         { error: 'You must be signed in to create an item.' },
         { status: 401 },
@@ -70,14 +96,13 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    // Basic validation – same required fields as before
     if (
-      !body.title
-      || !body.description
-      || !body.type
-      || !body.category
-      || !body.building
-      || !body.term
+      !body.title ||
+      !body.description ||
+      !body.type ||
+      !body.category ||
+      !body.building ||
+      !body.date
     ) {
       return NextResponse.json(
         { error: 'Missing required fields.' },
@@ -85,9 +110,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find the user in the DB based on the session email
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { email },
     });
 
     if (!user) {
@@ -97,14 +121,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Normalize type
-    const type: LostFoundType = body.type === 'FOUND' ? LostFoundType.FOUND : LostFoundType.LOST;
+    const dateObj = new Date(body.date);
+    const term = computeTerm(dateObj);
 
-    // Determine status (same logic as before, with Prisma enum)
+    const type =
+      body.type === 'FOUND' ? LostFoundType.FOUND : LostFoundType.LOST;
+
     let status: LostFoundStatus;
     if (
-      body.status
-      && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)
+      body.status &&
+      ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(
+        body.status,
+      )
     ) {
       status = body.status as LostFoundStatus;
     } else if (type === LostFoundType.LOST) {
@@ -112,9 +140,6 @@ export async function POST(req: NextRequest) {
     } else {
       status = LostFoundStatus.WAITING_FOR_PICKUP;
     }
-
-    const now = new Date();
-    const dateValue = body.date ? new Date(body.date) : now;
 
     const created = await prisma.lostFoundItem.create({
       data: {
@@ -124,8 +149,8 @@ export async function POST(req: NextRequest) {
         status,
         category: String(body.category),
         building: String(body.building),
-        term: String(body.term),
-        date: dateValue,
+        term,
+        date: dateObj,
         imageUrl: body.imageUrl ?? null,
         locationName: body.locationName ?? null,
         ownerId: user.id,
