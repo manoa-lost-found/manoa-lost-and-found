@@ -37,20 +37,8 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Push Prisma schema
-        run: npx prisma db push
-
-      - name: Seed database
-        run: npx prisma db seed
-
-      - name: Run ESLint
-        run: npm run lint
+      - name: Lint and run tests
+        run: npm run lint-and-test
 
       - name: Build app
         run: npm run build
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright tests
-        run: npx playwright test

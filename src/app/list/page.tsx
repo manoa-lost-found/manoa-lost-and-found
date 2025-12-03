@@ -82,8 +82,9 @@ export default function LostFoundFeedPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       next = next.filter(
-        (item) => item.title.toLowerCase().includes(q)
-          || item.description.toLowerCase().includes(q),
+        (item) =>
+          item.title.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q),
       );
     }
 
@@ -102,10 +103,7 @@ export default function LostFoundFeedPage() {
     next.sort((a, b) => {
       const da = new Date(a.date).getTime();
       const db = new Date(b.date).getTime();
-      if (sortOrder === 'NEWEST') {
-        return db - da;
-      }
-      return da - db;
+      return sortOrder === 'NEWEST' ? db - da : da - db;
     });
 
     return next;
@@ -121,10 +119,9 @@ export default function LostFoundFeedPage() {
     >
       <div className="container">
         <header className="mb-4 text-center">
-          <h1 className="fw-bold mb-2">Campus Lost &amp; Found Feed</h1>
+          <h1 className="h3 fw-bold mb-1">Find it. Report it. Reunite it.</h1>
           <p className="text-muted mb-0">
-            Browse recent lost and found reports across UH Mānoa. Use the filters
-            to narrow down items by type, building, or category.
+            Browse campus-wide lost and found posts, or use filters to narrow your search.
           </p>
         </header>
 
@@ -132,10 +129,9 @@ export default function LostFoundFeedPage() {
         <section className="card border-0 shadow-sm mb-4">
           <div className="card-body">
             <div className="row g-3 align-items-end">
+
               <div className="col-md-4">
-                <label htmlFor="search" className="form-label">
-                  Search by keyword
-                </label>
+                <label htmlFor="search" className="form-label">Search by keyword</label>
                 <input
                   id="search"
                   type="text"
@@ -147,9 +143,7 @@ export default function LostFoundFeedPage() {
               </div>
 
               <div className="col-md-2">
-                <label htmlFor="typeFilter" className="form-label">
-                  Item type
-                </label>
+                <label htmlFor="typeFilter" className="form-label">Item type</label>
                 <select
                   id="typeFilter"
                   className="form-select"
@@ -162,10 +156,8 @@ export default function LostFoundFeedPage() {
                 </select>
               </div>
 
-              <div className="col-md-3">
-                <label htmlFor="buildingFilter" className="form-label">
-                  Building
-                </label>
+              <div className="col-md-2">
+                <label htmlFor="buildingFilter" className="form-label">Building</label>
                 <select
                   id="buildingFilter"
                   className="form-select"
@@ -174,17 +166,13 @@ export default function LostFoundFeedPage() {
                 >
                   <option value="">All buildings</option>
                   {BUILDINGS.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
+                    <option key={b} value={b}>{b}</option>
                   ))}
                 </select>
               </div>
 
               <div className="col-md-2">
-                <label htmlFor="categoryFilter" className="form-label">
-                  Category
-                </label>
+                <label htmlFor="categoryFilter" className="form-label">Category</label>
                 <select
                   id="categoryFilter"
                   className="form-select"
@@ -193,17 +181,13 @@ export default function LostFoundFeedPage() {
                 >
                   <option value="">All categories</option>
                   {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="col-md-1">
-                <label htmlFor="sortOrder" className="form-label">
-                  Sort
-                </label>
+              <div className="col-md-2">
+                <label htmlFor="sortOrder" className="form-label">Sort</label>
                 <select
                   id="sortOrder"
                   className="form-select"
@@ -214,12 +198,12 @@ export default function LostFoundFeedPage() {
                   <option value="OLDEST">Oldest</option>
                 </select>
               </div>
+
             </div>
           </div>
         </section>
 
         {loading && <p className="text-muted">Loading items…</p>}
-
         {error && <p className="text-danger mb-3">{error}</p>}
 
         {!loading && !error && filteredItems.length === 0 && (
@@ -230,10 +214,7 @@ export default function LostFoundFeedPage() {
         <section className="row g-3">
           {filteredItems.map((item) => (
             <div key={item.id} className="col-md-6 col-lg-4">
-              <Link
-                href={`/item/${item.id}`}
-                className="text-decoration-none text-reset"
-              >
+              <Link href={`/item/${item.id}`} className="text-decoration-none text-reset">
                 <div className="card h-100 border-0 shadow-sm">
                   {item.imageUrl && (
                     <div
@@ -269,10 +250,7 @@ export default function LostFoundFeedPage() {
                     <h2 className="h6 fw-bold mb-1">{item.title}</h2>
 
                     <p className="small text-muted mb-2">
-                      {item.building}
-                      {' • '}
-                      {item.term}
-                      {' • '}
+                      {item.building} • {item.term} •{' '}
                       {new Date(item.date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
