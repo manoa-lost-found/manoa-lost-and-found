@@ -8,7 +8,9 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "playwright-development": "npx playwright test"
+    "test": "echo \"No tests configured\" && exit 0",
+    "playwright-development": "npx playwright test",
+    "lint-and-test": "npm run lint && npm test"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"

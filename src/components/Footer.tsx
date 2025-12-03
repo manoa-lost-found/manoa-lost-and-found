@@ -1,12 +1,12 @@
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
     <footer className="mt-5 py-4" style={{ backgroundColor: '#f0f7f4' }}>
       <div className="container">
-
         <div className="row">
-
           {/* LEFT COLUMN */}
-          <div className="col-md-6">
+          <div className="col-md-6 mb-3 mb-md-0">
             <p className="mb-1 fw-bold">Manoa Lost &amp; Found</p>
             <p className="mb-1">University of Hawaiʻi at Mānoa</p>
             <p className="mb-3">Honolulu, HI 96822</p>
@@ -29,16 +29,24 @@ export default function Footer() {
               </a>
             </p>
 
-            <a
-              href="https://github.com/manoa-lost-found/manoa-lost-and-found"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="fw-bold text-decoration-none"
-            >
-              GitHub Page
-            </a>
+            <p className="mb-2">
+              <a
+                href="https://github.com/manoa-lost-found/manoa-lost-and-found"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="fw-bold text-decoration-none"
+              >
+                GitHub Page
+              </a>
+            </p>
 
-            <p className="mt-2 mb-0">© 2025 Manoa Lost &amp; Found</p>
+            <p className="mb-0">
+              ©
+              {' '}
+              {year}
+              {' '}
+              Manoa Lost &amp; Found
+            </p>
             <p className="mb-0">Not an official UH service — for educational use.</p>
           </div>
 
@@ -64,7 +72,6 @@ export default function Footer() {
             </p>
             <p className="mb-0">To reach a dispatcher</p>
           </div>
-
         </div>
       </div>
     </footer>

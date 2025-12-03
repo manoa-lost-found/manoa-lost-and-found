@@ -21,7 +21,26 @@ export type FeedItem = {
   date: string; // 'YYYY-MM-DD'
   locationName?: string | null;
   ownerEmail: string;
+  ownerId?: number;
 };
+
+/**
+ * Given a date, compute the UH-style academic term string.
+ * Fall runs roughly Aug–Dec, Spring Jan–May, Summer Jun–Jul.
+ */
+function getUhAcademicTerm(date: Date): string {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 1–12
+
+  if (month >= 8 && month <= 12) {
+    return `Fall ${year}`;
+  }
+  if (month >= 1 && month <= 5) {
+    return `Spring ${year}`;
+  }
+  // Everything else treated as Summer
+  return `Summer ${year}`;
+}
 
 // GET all items for the public feed
 export async function GET() {
@@ -44,10 +63,12 @@ export async function GET() {
       imageUrl: item.imageUrl,
       locationName: item.locationName,
       ownerEmail: item.owner.email,
+      ownerId: item.ownerId,
     }));
 
     return NextResponse.json({ items: feedItems }, { status: 200 });
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error('Error in GET /api/items:', err);
     return NextResponse.json(
       { error: 'Failed to load items.' },
@@ -70,14 +91,13 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    // Basic validation – same required fields as before
+    // Basic validation – required fields
     if (
       !body.title
       || !body.description
       || !body.type
       || !body.category
       || !body.building
-      || !body.term
     ) {
       return NextResponse.json(
         { error: 'Missing required fields.' },
@@ -98,7 +118,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Normalize type
-    const type: LostFoundType = body.type === 'FOUND' ? LostFoundType.FOUND : LostFoundType.LOST;
+    const type: LostFoundType = body.type === 'FOUND'
+      ? LostFoundType.FOUND
+      : LostFoundType.LOST;
 
     // Determine status (same logic as before, with Prisma enum)
     let status: LostFoundStatus;
@@ -116,6 +138,9 @@ export async function POST(req: NextRequest) {
     const now = new Date();
     const dateValue = body.date ? new Date(body.date) : now;
 
+    // Derive UH term from the date
+    const term = getUhAcademicTerm(dateValue);
+
     const created = await prisma.lostFoundItem.create({
       data: {
         title: String(body.title),
@@ -124,7 +149,7 @@ export async function POST(req: NextRequest) {
         status,
         category: String(body.category),
         building: String(body.building),
-        term: String(body.term),
+        term,
         date: dateValue,
         imageUrl: body.imageUrl ?? null,
         locationName: body.locationName ?? null,
@@ -146,10 +171,12 @@ export async function POST(req: NextRequest) {
       imageUrl: created.imageUrl,
       locationName: created.locationName,
       ownerEmail: created.owner.email,
+      ownerId: created.ownerId,
     };
 
     return NextResponse.json({ item: responseItem }, { status: 201 });
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error('Error in POST /api/items:', err);
     return NextResponse.json(
       { error: 'Failed to create item.' },

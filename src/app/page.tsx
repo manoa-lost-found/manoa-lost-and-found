@@ -116,8 +116,8 @@ export default function HomePage() {
             <div className="col-lg-5 offset-lg-1">
               <div className="landing-bottom-image">
                 <Image
-                  src="/feed.png"
-                  alt="Feed showing lost and found items"
+                  src="/report-found.png"
+                  alt="Report found item form"
                   fill
                   className="landing-img"
                 />
