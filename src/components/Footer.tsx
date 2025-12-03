@@ -2,25 +2,16 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer
-      className="mt-5 py-4"
-      style={{
-        background: "linear-gradient(135deg, #f4faf7, #e7f2ec)",
-        borderTop: "1px solid #d5e6dd",
-      }}
-    >
+    <footer className="mt-5 py-4" style={{ backgroundColor: '#f0f7f4' }}>
       <div className="container">
-        <div className="row gy-4 align-items-start">
-
+        <div className="row">
           {/* LEFT COLUMN */}
-          <div className="col-md-7">
-            <p className="mb-1 fw-bold" style={{ color: "#0b6623" }}>
-              Manoa Lost &amp; Found
-            </p>
+          <div className="col-md-6 mb-3 mb-md-0">
+            <p className="mb-1 fw-bold">Manoa Lost &amp; Found</p>
             <p className="mb-1">University of Hawaiʻi at Mānoa</p>
             <p className="mb-3">Honolulu, HI 96822</p>
 
-            <p className="mb-2 text-muted">
+            <p className="mb-2">
               Helping UH students reconnect with lost items across campus.
               <br />
               For questions or bug reports, please open an issue on GitHub.
@@ -32,7 +23,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-decoration-none fw-semibold"
-                style={{ color: "#0b6623" }}
+                style={{ color: '#0b6623' }}
               >
                 UH Campus Safety
               </a>
@@ -49,43 +40,38 @@ export default function Footer() {
               </a>
             </p>
 
-            <p className="mt-2 mb-0 small text-muted">
-              © {year} Manoa Lost &amp; Found
+            <p className="mb-0">
+              ©
+              {' '}
+              {year}
+              {' '}
+              Manoa Lost &amp; Found
             </p>
-            <p className="mb-0 small text-muted">
-              Not an official UH service — for educational use.
-            </p>
+            <p className="mb-0">Not an official UH service — for educational use.</p>
           </div>
 
           {/* RIGHT COLUMN — SECURITY SECTION */}
-          <div className="col-md-5 text-md-end">
+          <div className="col-md-6">
             <p className="fw-bold mb-2">Security &amp; Emergency</p>
 
-            <ul className="list-unstyled mb-2 small">
-              <li className="mb-1 text-muted">Dial</li>
-              <li className="mb-1">
-                <strong>911</strong>
-              </li>
-              <li className="mb-3 text-muted">
-                For the Honolulu Police Department
-              </li>
+            <p className="mb-1">Dial</p>
+            <p className="mb-1">
+              <strong>911</strong>
+            </p>
+            <p className="mb-2">For the Honolulu Police Department</p>
 
-              <li className="mb-1 text-muted">Dial</li>
-              <li className="mb-1">
-                <strong>956-6911</strong>
-              </li>
-              <li className="mb-3 text-muted">
-                For UH Department of Public Safety
-              </li>
+            <p className="mb-1">Dial</p>
+            <p className="mb-1">
+              <strong>956-6911</strong>
+            </p>
+            <p className="mb-2">For UH Department of Public Safety</p>
 
-              <li className="mb-1 text-muted">Use any on-campus</li>
-              <li className="mb-1">
-                <strong>Emergency Call Box</strong>
-              </li>
-              <li className="mb-0 text-muted">To reach a dispatcher</li>
-            </ul>
+            <p className="mb-1">Use any on-campus</p>
+            <p className="mb-1">
+              <strong>Emergency Call Box</strong>
+            </p>
+            <p className="mb-0">To reach a dispatcher</p>
           </div>
-
         </div>
       </div>
     </footer>

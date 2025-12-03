@@ -1,158 +1,192 @@
-// @ts-nocheck
-import Link from "next/link";
+import Link from 'next/link';
 
 export default function FAQPage() {
   return (
     <main
       style={{
-        background: "linear-gradient(135deg, #f4faf7, #e7f2ec)",
-        minHeight: "calc(100vh - 64px)",
-        padding: "3rem 0 4rem",
+        background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
+        minHeight: 'calc(100vh - 64px)',
+        padding: '3.5rem 0 4rem',
       }}
     >
       <div className="container">
-        <div className="text-center mb-5">
-          <h1 className="fw-bold display-5">Frequently Asked Questions</h1>
-          <p className="text-muted lead">
-            Everything you need to know about using the Manoa Lost &amp; Found system.
-          </p>
-        </div>
+        {/* Hero / header */}
+        <section className="mb-4">
+          <div className="card border-0 shadow-sm rounded-4">
+            <div className="card-body p-4 p-md-5">
+              <p className="text-uppercase text-muted small mb-1">
+                Help &amp; Support
+              </p>
+              <h1 className="h2 fw-bold mb-2">Manoa Lost &amp; Found FAQ</h1>
+              <p className="mb-0 text-muted">
+                Answers to common questions about how to use this site and what
+                to do if you lose or find something on campus.
+              </p>
+            </div>
+          </div>
+        </section>
 
-        <div className="row g-4">
-
+        {/* FAQ grid */}
+        <section className="row g-4">
+          {/* Q1 */}
           <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">How do I report a lost item?</h3>
-                <p className="mb-0">
-                  Use the <Link href="/report/lost">Report Lost</Link> page to submit
-                  details about your missing item. Include a clear description, where it was
-                  last seen, and the date you lost it.
+                <h2 className="h5 fw-bold mb-2">How do I report a lost item?</h2>
+                <p className="text-muted mb-2">
+                  Go to the
+                  {' '}
+                  <Link
+                    href="/report/lost"
+                    className="fw-semibold text-decoration-none"
+                  >
+                    Report Lost
+                  </Link>
+                  {' '}
+                  page to submit details about your missing item.
+                </p>
+                <p className="text-muted mb-0">
+                  Include a clear description, where you last remember seeing it,
+                  and the date you lost it. Adding a photo can make it easier for
+                  others to recognize.
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Q2 */}
           <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">How do I report a found item?</h3>
-                <p className="mb-0">
-                  Use the <Link href="/report/found">Report Found</Link> page to list an
-                  item you discovered. You will be required to select an official turn-in
-                  location so the rightful owner knows where to pick it up.
+                <h2 className="h5 fw-bold mb-2">How do I report a found item?</h2>
+                <p className="text-muted mb-2">
+                  Use the
+                  {' '}
+                  <Link
+                    href="/report/found"
+                    className="fw-semibold text-decoration-none"
+                  >
+                    Report Found
+                  </Link>
+                  {' '}
+                  page to list an item you discovered.
+                </p>
+                <p className="text-muted mb-0">
+                  You will be asked to select an official pickup or turn-in
+                  location so the owner knows exactly where to go. Please only
+                  choose locations you are actually able to reach.
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Q3 */}
           <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">Where can I view all lost &amp; found items?</h3>
-                <p className="mb-0">
-                  Visit the <Link href="/list">Items Feed</Link> to browse campus-wide
-                  reports. You can filter by category, building, item type, and date.
+                <h2 className="h5 fw-bold mb-2">
+                  Where can I see all reported items?
+                </h2>
+                <p className="text-muted mb-2">
+                  Visit the
+                  {' '}
+                  <Link
+                    href="/list"
+                    className="fw-semibold text-decoration-none"
+                  >
+                    Lost &amp; Found Feed
+                  </Link>
+                  {' '}
+                  to browse campus-wide reports.
+                </p>
+                <p className="text-muted mb-0">
+                  You can filter by category, building, item type (lost or found),
+                  and sort by newest or oldest reports to narrow things down.
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Q4 */}
           <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">Do I need a UH email to sign up?</h3>
-                <p className="mb-0">
-                  Yes. A valid @hawaii.edu address is required to create an account. This
-                  ensures authenticity and helps prevent misuse.
+                <h2 className="h5 fw-bold mb-2">
+                  Do I need a UH email to use this site?
+                </h2>
+                <p className="text-muted mb-0">
+                  Yes. You must sign in with a University of Hawaiʻi email
+                  address to create or manage lost and found posts. This helps
+                  keep the system limited to the UH community and reduces spam.
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Q5 */}
           <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">
-                  Why do I have to choose a pickup/turn-in location for found items?
-                </h3>
-                <p className="mb-0">
-                  To reunite owners with their belongings efficiently, every found item must
-                  be turned in to an official pickup point. This ensures safety, consistency,
-                  and prevents items from getting lost again.
+                <h2 className="h5 fw-bold mb-2">
+                  What should I do if the item looks valuable or suspicious?
+                </h2>
+                <p className="text-muted mb-0">
+                  For wallets, IDs, keys, electronics, or anything that looks
+                  suspicious, you should turn it in to an official UH office or
+                  the Department of Public Safety. When you create a report on
+                  this site, choose the appropriate drop-off location so the
+                  owner knows where to go.
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Q6 */}
           <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">Why does the feed show Fall/Spring terms?</h3>
-                <p className="mb-0">
-                  The site automatically assigns each item to the correct UH academic term
-                  based on the reported date. This helps organize older posts and improves
-                  searching for items over time.
+                <h2 className="h5 fw-bold mb-2">Who can remove or edit posts?</h2>
+                <p className="text-muted mb-0">
+                  Regular users can delete their own posts. Site administrators
+                  may remove posts that are inappropriate, unsafe, or clearly
+                  not related to UH Mānoa. If you believe a post should be taken
+                  down, please contact an admin.
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Q7 */}
           <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">What if I don't see my item in the feed?</h3>
-                <p className="mb-0">
-                  Try adjusting your filters or searching under both “Lost” and “Found.”
-                  New items appear as soon as they are submitted, so check back often.
+                <h2 className="h5 fw-bold mb-2">Is this an official UH service?</h2>
+                <p className="text-muted mb-0">
+                  No. This site is a student-built project created for learning
+                  and to help the campus community. For official policies and
+                  emergency information, always refer to UH Mānoa and the
+                  Department of Public Safety.
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Q8 */}
           <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">Can I edit or delete a post?</h3>
-                <p className="mb-0">
-                  Posts cannot be edited after submission, but you may delete your own posts
-                  at any time. Administrators can also remove posts that violate guidelines.
+                <h2 className="h5 fw-bold mb-2">Still need help?</h2>
+                <p className="text-muted mb-0">
+                  If your question is not answered here, sign in and contact an
+                  admin, or talk with your instructor or project lead. For
+                  urgent safety concerns, contact UH Department of Public Safety
+                  or emergency services directly.
                 </p>
               </div>
             </div>
           </div>
-
-          <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
-              <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">
-                  Is my UH email or identity shown publicly?
-                </h3>
-                <p className="mb-0">
-                  No. Only item details are publicly visible. Your UH email is kept private
-                  for verification and ownership confirmation.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-6">
-            <div className="card shadow-sm border-0 h-100 rounded-4">
-              <div className="card-body p-4">
-                <h3 className="h5 fw-semibold mb-2">Still need help?</h3>
-                <p className="mb-0">
-                  If you still have questions, sign in and use your account support options
-                  or contact the site administrator directly.
-                </p>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div style={{ height: "3rem" }} />
+        </section>
       </div>
     </main>
   );
 }
-

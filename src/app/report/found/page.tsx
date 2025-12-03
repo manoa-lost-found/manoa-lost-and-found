@@ -1,244 +1,368 @@
 'use client';
 
-import { useState, ChangeEvent, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+/* eslint-disable no-alert, jsx-a11y/label-has-associated-control */
 
-const CATEGORY_OPTIONS = [
-  "Bottle",
-  "Clothing",
-  "Electronics",
-  "Wallet",
-  "Keys",
-  "ID",
-  "Jewelry",
-  "Bag",
-  "Misc",
-];
+import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Image from 'next/image';
+import { BUILDINGS } from '@/data/buildings';
+import { CATEGORIES } from '@/data/categories';
 
-const BUILDINGS = [
-  "Hamilton Library",
-  "POST Building",
-  "Bilger Hall",
-  "Campus Center",
-  "Gateway House",
-  "Sakamaki Hall",
-  "Keller Hall",
-  "Sinclair Library",
-  "Art Building",
-  "BusAd",
-  "Paradise Palms",
-  "Other",
-];
+type ItemType = 'LOST' | 'FOUND';
 
-const PICKUP_LOCATIONS = [
-  "Campus Center Information Desk",
-  "Hamilton Library Front Desk",
-  "Gateway House Front Desk",
-  "Keller Hall Office",
-  "Sakamaki Hall Office",
-  "Paradise Palms Counter",
-  "Other UH Office",
+type FoundFormData = {
+  title: string;
+  description: string;
+  category: string;
+  building: string;
+  date: string;
+  locationName: string;
+  pickupLocation: string;
+  imageFile: File | null;
+  imagePreview: string | null;
+};
+
+const PICKUP_LOCATIONS: string[] = [
+  'Campus Center (Information Desk)',
+  'Hamilton Library (Front Desk)',
+  'Sinclair Library (Service Desk)',
+  'Hemenway Hall (Student Services)',
+  'Bilger Hall (Department Office)',
+  'Art Building (Main Office)',
 ];
 
 export default function ReportFoundPage() {
   const router = useRouter();
+  const { data: session } = useSession();
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "Misc",
-    building: "Hamilton Library",
-    locationName: "",
-    date: "",
-    imageUrl: null as string | null,
+  const [formData, setFormData] = useState<FoundFormData>({
+    title: '',
+    description: '',
+    category: '',
+    building: '',
+    date: '',
+    locationName: '',
+    pickupLocation: '',
+    imageFile: null,
+    imagePreview: null,
   });
 
-  const [preview, setPreview] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleChange(
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  }
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
-  function handleImageChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+
+    if (!file) {
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: null,
+        imagePreview: null,
+      }));
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => {
-      setFormData((prev) => ({ ...prev, imageUrl: reader.result as string }));
-      setPreview(reader.result as string);
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: file,
+        imagePreview: typeof reader.result === 'string' ? reader.result : null,
+      }));
     };
     reader.readAsDataURL(file);
-  }
+  };
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+    if (submitting) return;
+    setSubmitting(true);
 
     try {
-      const res = await fetch("/api/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          type: "FOUND",
-        }),
+      const body = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        type: 'FOUND' as ItemType,
+        category: formData.category,
+        building: formData.building,
+        date: formData.date,
+        // This is the official pickup / turn-in location
+        locationName: formData.pickupLocation,
+        imageUrl: formData.imagePreview,
+      };
+
+      const res = await fetch('/api/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
-        const body = await res.json();
-        throw new Error(body.error || "Failed to submit item");
+        const data = await res.json().catch(() => null);
+        // eslint-disable-next-line no-console
+        console.error('Failed to submit found item:', data);
+        alert(data?.error || 'Failed to submit found item.');
+        setSubmitting(false);
+        return;
       }
 
-      setSuccess("Item submitted successfully!");
-      router.push("/list");
-    } catch (err: any) {
-      setError(err.message || "Failed to submit item");
-    } finally {
-      setLoading(false);
+      const data = await res.json();
+      router.push(`/item/${data.item.id}`);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      alert('Something went wrong while submitting your report.');
+      setSubmitting(false);
     }
-  }
+  };
+
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="container mt-4">
-      <h1 className="fw-bold">Report Found Item</h1>
-
-      {error && <div className="alert alert-danger mt-3">{error}</div>}
-      {success && <div className="alert alert-success mt-3">{success}</div>}
-
-      <form className="mt-4" onSubmit={handleSubmit}>
-        {/* ITEM NAME */}
-        <div className="mb-3">
-          <label className="form-label">Item Name *</label>
-          <input
-            name="title"
-            className="form-control"
-            required
-            value={formData.title}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* DESCRIPTION */}
-        <div className="mb-3">
-          <label className="form-label">Description *</label>
-          <textarea
-            name="description"
-            className="form-control"
-            rows={4}
-            required
-            value={formData.description}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* CATEGORY */}
-        <div className="mb-3">
-          <label className="form-label">Category *</label>
-          <select
-            name="category"
-            className="form-control"
-            value={formData.category}
-            onChange={handleChange}
-          >
-            {CATEGORY_OPTIONS.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* FOUND AT (BUILDING) */}
-        <div className="mb-3">
-          <label className="form-label">Found At (Building) *</label>
-          <select
-            name="building"
-            className="form-control"
-            value={formData.building}
-            onChange={handleChange}
-          >
-            {BUILDINGS.map((b) => (
-              <option key={b}>{b}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* PICKUP / DROP-OFF LOCATION (REQUIRED) */}
-        <div className="mb-3">
-          <label className="form-label">Pickup / Drop-off Location *</label>
-          <small className="text-muted d-block mb-1">
-            Choose where you turned this item in so the owner knows where to pick it up.
-            You can view UH Mānoa buildings on the{" "}
+    <main
+      style={{
+        background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
+        minHeight: 'calc(100vh - 64px)',
+        padding: '3.5rem 0 4rem',
+      }}
+    >
+      <div className="container" style={{ maxWidth: 900 }}>
+        <div className="mb-4 text-center">
+          <h1 className="fw-bold mb-2">Report a Found Item</h1>
+          <p className="text-muted mb-2">
+            Help a fellow student get their belongings back by sharing where you turned it in.
+          </p>
+          <p className="text-muted small mb-0">
+            Not sure where to go? Use the
+            {' '}
             <a
-              href="https://manoa.hawaii.edu/campusmap/"
+              href="https://www.hawaii.edu/campusmap/"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
             >
-              campus map
+              UH Mānoa campus map
             </a>
-            .
-          </small>
-          <select
-            name="locationName"
-            className="form-control"
-            required
-            value={formData.locationName}
-            onChange={handleChange}
-          >
-            <option value="" disabled>
-              Select a pickup location
-            </option>
-            {PICKUP_LOCATIONS.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
-          </select>
+            {' '}
+            to find an official service desk or office.
+          </p>
         </div>
 
-        {/* DATE FOUND */}
-        <div className="mb-3">
-          <label className="form-label">Date Found *</label>
-          <input
-            type="date"
-            name="date"
-            className="form-control"
-            required
-            value={formData.date}
-            onChange={handleChange}
-          />
-        </div>
+        {!session && (
+          <p className="alert alert-info">
+            You must be signed in with your UH account to submit a found item report.
+          </p>
+        )}
 
-        {/* IMAGE UPLOAD */}
-        <div className="mb-3">
-          <label className="form-label">Upload Image (optional)</label>
-          <input
-            type="file"
-            accept="image/*"
-            className="form-control"
-            onChange={handleImageChange}
-          />
-          {preview && (
-            <div className="mt-3">
-              <img
-                src={preview}
-                alt="Preview"
-                style={{ width: 200, height: 200, objectFit: "cover" }}
-              />
+        <form
+          onSubmit={handleSubmit}
+          className="card border-0 shadow-sm rounded-4"
+        >
+          <div className="card-body p-4 p-md-5">
+            <div className="row g-4">
+              <div className="col-md-7">
+                <div className="mb-3">
+                  <label htmlFor="title" className="form-label fw-semibold">
+                    Item name *
+                  </label>
+                  <input
+                    id="title"
+                    name="title"
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. Wallet, phone, backpack"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="description" className="form-label fw-semibold">
+                    Description *
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    className="form-control"
+                    rows={4}
+                    placeholder="Include color, brand, and any details that might help confirm ownership."
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label htmlFor="category" className="form-label fw-semibold">
+                      Category *
+                    </label>
+                    <select
+                      id="category"
+                      name="category"
+                      className="form-select"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select a category</option>
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label htmlFor="building" className="form-label fw-semibold">
+                      Where you found it (building) *
+                    </label>
+                    <select
+                      id="building"
+                      name="building"
+                      className="form-select"
+                      value={formData.building}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select a building</option>
+                      {BUILDINGS.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="row g-3 mt-1">
+                  <div className="col-md-6">
+                    <label htmlFor="date" className="form-label fw-semibold">
+                      Date found *
+                    </label>
+                    <input
+                      id="date"
+                      name="date"
+                      type="date"
+                      className="form-control"
+                      max={today}
+                      value={formData.date}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label htmlFor="pickupLocation" className="form-label fw-semibold">
+                      Turn-in / pickup location *
+                    </label>
+                    <select
+                      id="pickupLocation"
+                      name="pickupLocation"
+                      className="form-select"
+                      value={formData.pickupLocation}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select a pickup location</option>
+                      {PICKUP_LOCATIONS.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="form-text">
+                      Choose the official office or desk where you turned the item in (or
+                      where you will keep it safely for pickup).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <label htmlFor="locationName" className="form-label fw-semibold">
+                    More location details (optional)
+                  </label>
+                  <input
+                    id="locationName"
+                    name="locationName"
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. near front entrance, on 3rd floor hallway"
+                    value={formData.locationName}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              <div className="col-md-5">
+                <div className="mb-3">
+                  <label htmlFor="image" className="form-label fw-semibold">
+                    Upload image (optional)
+                  </label>
+                  <input
+                    id="image"
+                    name="image"
+                    type="file"
+                    className="form-control"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  <p className="form-text">
+                    Add a photo of the item if you can. Avoid showing sensitive details like
+                    full ID numbers.
+                  </p>
+                </div>
+
+                {formData.imagePreview && (
+                  <div className="border rounded-3 overflow-hidden">
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '220px',
+                      }}
+                    >
+                      <Image
+                        src={formData.imagePreview}
+                        alt="Item preview"
+                        fill
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* SUBMIT */}
-        <button type="submit" className="btn btn-success" disabled={loading}>
-          {loading ? "Submitting…" : "Submit"}
-        </button>
-      </form>
-    </div>
+            <div className="mt-4 d-flex justify-content-between align-items-center">
+              <p className="text-muted small mb-0">
+                By submitting this form, you agree to only post honest and accurate information
+                about items found on or near the UH Mānoa campus.
+              </p>
+              <button
+                type="submit"
+                className="btn btn-success px-4"
+                disabled={submitting || !session}
+              >
+                {submitting ? 'Submitting…' : 'Submit report'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </main>
   );
 }
