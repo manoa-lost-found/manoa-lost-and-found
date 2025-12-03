@@ -127,6 +127,58 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
+                <h2 className="h5 fw-bold mb-2">How do I turn in a lost item?</h2>
+                <p className="text-muted mb-2">
+                  View the
+                  {' '}
+                  <Link
+                    href="/instructions/turn-in"
+                    className="fw-semibold text-decoration-none"
+                  >
+                    Turn In Instructions
+                  </Link>
+                  {' '}
+                  page about details for turning in a lost item.
+                </p>
+                <p className="text-muted mb-0">
+                  There are select places to turn in lost items on campus.
+                  View this page for step-by-step instructions to ensure the item
+                  is turned in properly and can be reunited with its owner.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Q6 */}
+          <div className="col-md-6">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
+              <div className="card-body p-4">
+                <h2 className="h5 fw-bold mb-2">How do I recover a found item?</h2>
+                <p className="text-muted mb-2">
+                  View the
+                  {' '}
+                  <Link
+                    href="/instructions/recovery"
+                    className="fw-semibold text-decoration-none"
+                  >
+                    Recovery Instructions
+                  </Link>
+                  {' '}
+                  page for detailed instructions when your item is found.
+                </p>
+                <p className="text-muted mb-0">
+                  Once an item matching your lost report is found and posted, you will
+                  receive a notification. Follow the recovery instructions to safely
+                  retrieve your item from the designated location. Be prepared to verify ownership when requested.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Q7 */}
+          <div className="col-md-6">
+            <div className="card h-100 border-0 shadow-sm rounded-4">
+              <div className="card-body p-4">
                 <h2 className="h5 fw-bold mb-2">
                   What should I do if the item looks valuable or suspicious?
                 </h2>
@@ -141,7 +193,7 @@ export default function FAQPage() {
             </div>
           </div>
 
-          {/* Q6 */}
+          {/* Q8 */}
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
@@ -156,7 +208,7 @@ export default function FAQPage() {
             </div>
           </div>
 
-          {/* Q7 */}
+          {/* Q9 */}
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
@@ -171,7 +223,7 @@ export default function FAQPage() {
             </div>
           </div>
 
-          {/* Q8 */}
+          {/* Q10 */}
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
