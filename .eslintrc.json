@@ -32,7 +32,7 @@
     {
       "files": ["prisma/**/*.{ts,tsx}"],
       "parserOptions": {
-        "project": null"
+        "project": null
       }
     }
   ]
