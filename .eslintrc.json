@@ -5,26 +5,26 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
- "rules": {
-  "arrow-parens": "off",
-  "func-names": "off",
-  "linebreak-style": "off",
-  "max-len": ["error", 120],
-  "no-console": "off",
-  "no-plusplus": "off",
-  "no-restricted-syntax": "off",
-  "no-return-assign": "off",
-  "object-curly-newline": "off",
-  "prefer-arrow-callback": "off",
-  "operator-linebreak": "off",
-  "implicit-arrow-linebreak": "off",
-  "react/jsx-curly-newline": "off",
-  "react/jsx-one-expression-per-line": "off",
-  "react/function-component-definition": "off",
-  "react/jsx-props-no-spreading": "off",
-  "react/react-in-jsx-scope": "off",
-  "jsx-a11y/label-has-associated-control": "off"
-}
+  "rules": {
+    "arrow-parens": "off",
+    "func-names": "off",
+    "linebreak-style": "off",
+    "max-len": ["error", 120],
+    "no-console": "off",
+    "no-plusplus": "off",
+    "no-restricted-syntax": "off",
+    "no-return-assign": "off",
+    "object-curly-newline": "off",
+    "prefer-arrow-callback": "off",
+    "operator-linebreak": "off",
+    "implicit-arrow-linebreak": "off",
+    "react/jsx-curly-newline": "off",
+    "react/jsx-one-expression-per-line": "off",
+    "react/function-component-definition": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/react-in-jsx-scope": "off",
+    "jsx-a11y/label-has-associated-control": "off"
+  },
   "overrides": [
     {
       "files": ["prisma/**/*.{ts,tsx}"],
