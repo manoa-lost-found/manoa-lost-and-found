@@ -1,10 +1,9 @@
-// src/app/dashboard/page.tsx
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type ItemType = 'LOST' | 'FOUND';
 type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
@@ -17,33 +16,90 @@ type MyItem = {
   status: ItemStatus;
   category: string;
   building: string;
-  term: string;
   date: string;
   imageUrl?: string | null;
   locationName?: string | null;
 };
 
-function DashboardRow({ item }: { item: MyItem }) {
-  return (
-    <div className="d-flex justify-content-between align-items-center border rounded p-3 mb-2">
-      <div>
-        <strong>{item.title}</strong>
-        <div className="small text-muted">
-          {item.building}
-          {' '}
-          •
-          {' '}
-          {item.term}
-        </div>
-      </div>
+// Status badge UI
+function StatusBadge({ status }: { status: ItemStatus }) {
+  const colors: Record<ItemStatus, string> = {
+    OPEN: 'badge bg-success',
+    TURNED_IN: 'badge bg-warning text-dark',
+    WAITING_FOR_PICKUP: 'badge bg-primary',
+    RECOVERED: 'badge bg-secondary',
+  };
 
-      <div className="d-flex gap-2">
-        <Link href={`/item/${item.id}`} className="btn btn-outline-secondary btn-sm">
-          View
-        </Link>
-        <Link href={`/item/${item.id}/edit`} className="btn btn-primary btn-sm">
-          Edit
-        </Link>
+  return <span className={colors[status]}>{status.replace(/_/g, ' ')}</span>;
+}
+
+function DashboardCard({ item }: { item: MyItem }) {
+  const dateLabel = new Date(item.date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  return (
+    <div className="card border-0 shadow-sm rounded-4 mb-3">
+      <div className="row g-0">
+        {/* Thumbnail */}
+        <div className="col-md-3">
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              minHeight: '110px',
+              position: 'relative',
+              borderTopLeftRadius: '1rem',
+              borderBottomLeftRadius: '1rem',
+              overflow: 'hidden',
+            }}
+          >
+            {item.imageUrl ? (
+              <Image
+                src={item.imageUrl}
+                alt={item.title}
+                fill
+                style={{ objectFit: 'cover' }}
+              />
+            ) : (
+              <div className="d-flex justify-content-center align-items-center h-100 bg-light text-muted small">
+                No Image
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="col-md-9">
+          <div className="card-body p-3 p-md-4">
+            <div className="d-flex justify-content-between align-items-start">
+              <div>
+                <h3 className="h6 fw-bold mb-1">{item.title}</h3>
+                <p className="small text-muted mb-1">
+                  {item.building} • {dateLabel}
+                </p>
+                <StatusBadge status={item.status} />
+              </div>
+
+              <div className="d-flex gap-2">
+                <Link href={`/item/${item.id}`} className="btn btn-outline-secondary btn-sm">
+                  View
+                </Link>
+                <Link href={`/item/${item.id}/edit`} className="btn btn-primary btn-sm">
+                  Edit
+                </Link>
+              </div>
+            </div>
+
+            {item.locationName && (
+              <p className="small text-muted mt-2">
+                Pickup Location: {item.locationName}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -88,26 +144,36 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="container py-4">
-      <h1 className="fw-bold mb-4">My Dashboard</h1>
+    <main
+      style={{
+        background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
+        minHeight: 'calc(100vh - 64px)',
+        padding: '3rem 0',
+      }}
+    >
+      <div className="container" style={{ maxWidth: 850 }}>
+        <h1 className="fw-bold mb-4 text-center">My Dashboard</h1>
 
-      <section className="mb-5">
-        <h2 className="h4 mb-3">My Lost Items</h2>
-        {lost.length === 0 ? (
-          <p className="text-muted">You have not reported any lost items.</p>
-        ) : (
-          lost.map((item) => <DashboardRow key={item.id} item={item} />)
-        )}
-      </section>
+        {/* LOST ITEMS */}
+        <section className="mb-5">
+          <h2 className="h5 fw-bold mb-3">My Lost Items</h2>
+          {lost.length === 0 ? (
+            <p className="text-muted">You haven't reported any lost items yet.</p>
+          ) : (
+            lost.map((item) => <DashboardCard key={item.id} item={item} />)
+          )}
+        </section>
 
-      <section>
-        <h2 className="h4 mb-3">My Found Items</h2>
-        {found.length === 0 ? (
-          <p className="text-muted">You have not reported any found items.</p>
-        ) : (
-          found.map((item) => <DashboardRow key={item.id} item={item} />)
-        )}
-      </section>
+        {/* FOUND ITEMS */}
+        <section>
+          <h2 className="h5 fw-bold mb-3">My Found Items</h2>
+          {found.length === 0 ? (
+            <p className="text-muted">You haven't reported any found items yet.</p>
+          ) : (
+            found.map((item) => <DashboardCard key={item.id} item={item} />)
+          )}
+        </section>
+      </div>
     </main>
   );
 }
