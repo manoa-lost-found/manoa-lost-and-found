@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       user: updated,
     });
   } catch (err) {
-    console.error('PROMOTE ERROR:', err);
+    console.error('PROMOTE ERROR FULL:', err);
     return NextResponse.json(
       { error: 'Failed to promote user' },
       { status: 500 },
