@@ -87,7 +87,16 @@ export async function PUT(
   if (body.term !== undefined) data.term = String(body.term);
   if (body.date !== undefined) data.date = new Date(body.date);
   if (body.locationName !== undefined) data.locationName = body.locationName || null;
-  if (body.status && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)) {
+
+  // ⭐⭐ THIS IS THE FIX ⭐⭐
+  if (body.imageUrl !== undefined) {
+    data.imageUrl = body.imageUrl || null;
+  }
+
+  if (
+    body.status &&
+    ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)
+  ) {
     data.status = body.status as LostFoundStatus;
   }
 
