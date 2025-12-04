@@ -43,22 +43,30 @@ const authOptions: NextAuthOptions = {
         });
         if (!user) return null;
 
-        const isPasswordValid = await compare(credentials.password, user.password);
+        const isPasswordValid = await compare(
+          credentials.password,
+          user.password
+        );
         if (!isPasswordValid) return null;
 
         if (!user.emailVerified) {
           throw new Error('EmailNotVerified');
         }
 
+        // 🚫 BLOCK DISABLED ACCOUNTS
+        if (user.role === 'DISABLED') {
+          throw new Error('AccountDisabled');
+        }
+
         return {
           id: `${user.id}`,
           email: user.email,
-          randomKey: user.role, // ADMIN or USER
+          randomKey: user.role, // ADMIN / USER / DISABLED
         };
       },
     }),
 
-    // Admin login (NO WHITELIST)
+    // Admin login
     CredentialsProvider({
       id: 'admin-credentials',
       name: 'Admin Only Login',
@@ -86,14 +94,21 @@ const authOptions: NextAuthOptions = {
         });
         if (!user) return null;
 
-        const isPasswordValid = await compare(credentials.password, user.password);
+        const isPasswordValid = await compare(
+          credentials.password,
+          user.password
+        );
         if (!isPasswordValid) return null;
 
         if (!user.emailVerified) {
           throw new Error('EmailNotVerified');
         }
 
-        // ONLY check DB role (no whitelist)
+        // 🚫 BLOCK DISABLED ADMINS TOO
+        if (user.role === 'DISABLED') {
+          throw new Error('AccountDisabled');
+        }
+
         if (user.role !== 'ADMIN') {
           throw new Error('NotAdmin');
         }
@@ -119,7 +134,12 @@ const authOptions: NextAuthOptions = {
     },
 
     session: ({ session, token }) => {
-      const newSession = {
+      // 🚫 Auto-logout disabled accounts
+      if (token.randomKey === 'DISABLED') {
+        return null;
+      }
+
+      return {
         ...session,
         user: {
           ...session.user,
@@ -127,18 +147,16 @@ const authOptions: NextAuthOptions = {
           randomKey: token.randomKey,
         },
       };
-      return newSession;
     },
 
     jwt: ({ token, user }) => {
       if (user) {
         const u: any = user;
-        const newToken = {
+        return {
           ...token,
           id: u.id,
           randomKey: u.randomKey,
         };
-        return newToken;
       }
       return token;
     },
