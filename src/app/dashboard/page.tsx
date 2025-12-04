@@ -21,7 +21,6 @@ type MyItem = {
   locationName?: string | null;
 };
 
-// Status badge UI
 function StatusBadge({ status }: { status: ItemStatus }) {
   const colors: Record<ItemStatus, string> = {
     OPEN: 'badge bg-success',
@@ -43,7 +42,6 @@ function DashboardCard({ item }: { item: MyItem }) {
   return (
     <div className="card border-0 shadow-sm rounded-4 mb-3">
       <div className="row g-0">
-        {/* Thumbnail */}
         <div className="col-md-3">
           <div
             style={{
@@ -71,15 +69,18 @@ function DashboardCard({ item }: { item: MyItem }) {
           </div>
         </div>
 
-        {/* Content */}
         <div className="col-md-9">
           <div className="card-body p-3 p-md-4">
             <div className="d-flex justify-content-between align-items-start">
               <div>
                 <h3 className="h6 fw-bold mb-1">{item.title}</h3>
+
                 <p className="small text-muted mb-1">
-                  {item.building} • {dateLabel}
+                  {item.building}
+                  <br />
+                  {dateLabel}
                 </p>
+
                 <StatusBadge status={item.status} />
               </div>
 
@@ -95,7 +96,9 @@ function DashboardCard({ item }: { item: MyItem }) {
 
             {item.locationName && (
               <p className="small text-muted mt-2">
-                Pickup Location: {item.locationName}
+                Pickup Location:
+                {' '}
+                {item.locationName}
               </p>
             )}
           </div>
@@ -138,7 +141,7 @@ export default function DashboardPage() {
   if (status === 'loading' || loading) {
     return (
       <main className="container py-5">
-        <p>Loading your dashboard…</p>
+        <p>Loading your dashboard&hellip;</p>
       </main>
     );
   }
@@ -154,21 +157,21 @@ export default function DashboardPage() {
       <div className="container" style={{ maxWidth: 850 }}>
         <h1 className="fw-bold mb-4 text-center">My Dashboard</h1>
 
-        {/* LOST ITEMS */}
         <section className="mb-5">
           <h2 className="h5 fw-bold mb-3">My Lost Items</h2>
+
           {lost.length === 0 ? (
-            <p className="text-muted">You haven't reported any lost items yet.</p>
+            <p className="text-muted">You haven&rsquo;t reported any lost items yet.</p>
           ) : (
             lost.map((item) => <DashboardCard key={item.id} item={item} />)
           )}
         </section>
 
-        {/* FOUND ITEMS */}
         <section>
           <h2 className="h5 fw-bold mb-3">My Found Items</h2>
+
           {found.length === 0 ? (
-            <p className="text-muted">You haven't reported any found items yet.</p>
+            <p className="text-muted">You haven&rsquo;t reported any found items yet.</p>
           ) : (
             found.map((item) => <DashboardCard key={item.id} item={item} />)
           )}
