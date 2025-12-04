@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-async function GET() {
+export async function GET() {
   try {
     const users = await prisma.user.findMany({
       include: {
@@ -26,5 +26,3 @@ async function GET() {
     );
   }
 }
-
-export default GET;
