@@ -13,25 +13,23 @@ type UserRecord = {
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
-  const role = (session?.user as any)?.randomKey; // your NextAuth sets randomKey = role
+  const role = (session?.user as any)?.randomKey;
   const isAdmin = role === 'ADMIN';
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      const res = await fetch('/api/admin/users');
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data.users);
-      }
-      setLoading(false);
+  async function load() {
+    const res = await fetch('/api/admin/users');
+    if (res.ok) {
+      const data = await res.json();
+      setUsers(data.users);
     }
+    setLoading(false);
+  }
 
-    if (isAdmin) {
-      load();
-    }
+  useEffect(() => {
+    if (isAdmin) load();
   }, [isAdmin]);
 
   if (!isAdmin) {
@@ -51,21 +49,23 @@ export default function AdminUsersPage() {
     );
   }
 
-  // API ACTION HELPERS
+  // FIXED: API now receives proper JSON
   async function promoteUser(id: number) {
     await fetch('/api/admin/users/promote', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     });
-    window.location.reload(); // reload table after update
+    load(); // refresh without full-page reload
   }
 
   async function disableUser(id: number) {
     await fetch('/api/admin/users/disable', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     });
-    window.location.reload(); // reload table after update
+    load(); // refresh without full-page reload
   }
 
   return (
@@ -105,7 +105,6 @@ export default function AdminUsersPage() {
                 <td>
                   <div className="d-flex gap-2">
 
-                    {/* VIEW USER PROFILE */}
                     <Link
                       href={`/profile/${u.id}`}
                       className="btn btn-sm btn-outline-secondary"
@@ -113,7 +112,6 @@ export default function AdminUsersPage() {
                       View Profile
                     </Link>
 
-                    {/* PROMOTE BUTTON */}
                     <button
                       type="button"
                       className="btn btn-sm btn-primary"
@@ -123,7 +121,6 @@ export default function AdminUsersPage() {
                       Promote to Admin
                     </button>
 
-                    {/* DISABLE BUTTON */}
                     <button
                       type="button"
                       className="btn btn-sm btn-danger"
