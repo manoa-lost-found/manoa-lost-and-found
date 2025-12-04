@@ -28,7 +28,8 @@ export default function AdminItemManager() {
   const [items, setItems] = useState<AdminItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<'ALL' | ItemType>('ALL');
-  const [filterStatus, setFilterStatus] = useState<'ALL' | ItemStatus>('ALL');
+  const [filterStatus, setFilterStatus] =
+    useState<'ALL' | ItemStatus>('ALL');
   const [search, setSearch] = useState('');
 
   async function load() {
@@ -65,16 +66,23 @@ export default function AdminItemManager() {
 
   const filtered = items.filter((i) => {
     const matchesType = filterType === 'ALL' || i.type === filterType;
-    const matchesStatus = filterStatus === 'ALL' || i.status === filterStatus;
+    const matchesStatus =
+      filterStatus === 'ALL' || i.status === filterStatus;
     const query = search.toLowerCase();
 
-    const matchesSearch = i.title.toLowerCase().includes(query)
-      || i.building.toLowerCase().includes(query);
+    const matchesSearch =
+      i.title.toLowerCase().includes(query) ||
+      i.building.toLowerCase().includes(query);
 
     return matchesType && matchesStatus && matchesSearch;
   });
 
-  const statuses: ItemStatus[] = ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'];
+  const statuses: ItemStatus[] = [
+    'OPEN',
+    'TURNED_IN',
+    'WAITING_FOR_PICKUP',
+    'RECOVERED',
+  ];
 
   async function updateStatus(id: number, status: ItemStatus) {
     await fetch(`/api/items/${id}`, {
@@ -94,54 +102,61 @@ export default function AdminItemManager() {
 
           {/* Search */}
           <div className="col-md-4">
-            <label htmlFor="search" className="form-label fw-semibold">
+            <label htmlFor="search" className="form-label fw-semibold w-100">
               Search
+              <input
+                id="search"
+                type="text"
+                className="form-control mt-1"
+                placeholder="Search title or building…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </label>
-            <input
-              id="search"
-              type="text"
-              className="form-control"
-              placeholder="Search title or building…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
           </div>
 
           {/* Filter by Type */}
           <div className="col-md-4">
-            <label htmlFor="filterType" className="form-label fw-semibold">
+            <label htmlFor="filterType" className="form-label fw-semibold w-100">
               Filter by Type
+              <select
+                id="filterType"
+                className="form-select mt-1"
+                value={filterType}
+                onChange={(e) =>
+                  setFilterType(e.target.value as ItemType | 'ALL')
+                }
+              >
+                <option value="ALL">All</option>
+                <option value="LOST">Lost</option>
+                <option value="FOUND">Found</option>
+              </select>
             </label>
-            <select
-              id="filterType"
-              className="form-select"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value as ItemType | 'ALL')}
-            >
-              <option value="ALL">All</option>
-              <option value="LOST">Lost</option>
-              <option value="FOUND">Found</option>
-            </select>
           </div>
 
           {/* Filter by Status */}
           <div className="col-md-4">
-            <label htmlFor="filterStatus" className="form-label fw-semibold">
-              Filter by Status
-            </label>
-            <select
-              id="filterStatus"
-              className="form-select"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as ItemStatus | 'ALL')}
+            <label
+              htmlFor="filterStatus"
+              className="form-label fw-semibold w-100"
             >
-              <option value="ALL">All</option>
-              {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              Filter by Status
+              <select
+                id="filterStatus"
+                className="form-select mt-1"
+                value={filterStatus}
+                onChange={(e) =>
+                  setFilterStatus(e.target.value as ItemStatus | 'ALL')
+                }
+              >
+                <option value="ALL">All</option>
+                {statuses.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
         </div>
@@ -149,7 +164,11 @@ export default function AdminItemManager() {
 
       {/* Results */}
       <div>
-        <h5 className="mb-3">{`Showing ${filtered.length} ${filtered.length === 1 ? 'item' : 'items'}`}</h5>
+        <h5 className="mb-3">
+          {`Showing ${filtered.length} ${
+            filtered.length === 1 ? 'item' : 'items'
+          }`}
+        </h5>
 
         {filtered.length === 0 ? (
           <p className="text-muted">No items match the filters.</p>
@@ -170,14 +189,20 @@ export default function AdminItemManager() {
                 </div>
 
                 <div className="d-flex gap-2 align-items-center">
-                  <label htmlFor={`status-${item.id}`} className="visually-hidden">
-                    Status
+                  <label
+                    htmlFor={`status-${item.id}`}
+                    className="visually-hidden"
+                  >
+                    Update Status
                   </label>
+
                   <select
                     id={`status-${item.id}`}
                     className="form-select form-select-sm"
                     value={item.status}
-                    onChange={(e) => updateStatus(item.id, e.target.value as ItemStatus)}
+                    onChange={(e) =>
+                      updateStatus(item.id, e.target.value as ItemStatus)
+                    }
                   >
                     {statuses.map((s) => (
                       <option key={s} value={s}>
@@ -186,15 +211,24 @@ export default function AdminItemManager() {
                     ))}
                   </select>
 
-                  <Link href={`/item/${item.id}`} className="btn btn-outline-secondary btn-sm">
+                  <Link
+                    href={`/item/${item.id}`}
+                    className="btn btn-outline-secondary btn-sm"
+                  >
                     View
                   </Link>
 
-                  <Link href={`/item/${item.id}/edit`} className="btn btn-primary btn-sm">
+                  <Link
+                    href={`/item/${item.id}/edit`}
+                    className="btn btn-primary btn-sm"
+                  >
                     Edit
                   </Link>
 
-                  <Link href={`/item/${item.id}`} className="btn btn-danger btn-sm">
+                  <Link
+                    href={`/item/${item.id}`}
+                    className="btn btn-danger btn-sm"
+                  >
                     Delete
                   </Link>
                 </div>
