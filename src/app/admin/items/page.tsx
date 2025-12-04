@@ -62,12 +62,17 @@ export default function AdminItemManager() {
   }
 
   const filtered = items.filter((i) => {
-    const matchesType = filterType === 'ALL' || i.type === filterType;
-    const matchesStatus = filterStatus === 'ALL' || i.status === filterStatus;
+    const matchesType =
+      filterType === 'ALL' || i.type === filterType;
+
+    const matchesStatus =
+      filterStatus === 'ALL' || i.status === filterStatus;
+
     const query = search.toLowerCase();
+
     const matchesSearch =
-      i.title.toLowerCase().includes(query) ||
-      i.building.toLowerCase().includes(query);
+      i.title.toLowerCase().includes(query)
+      || i.building.toLowerCase().includes(query);
 
     return matchesType && matchesStatus && matchesSearch;
   });
@@ -94,6 +99,8 @@ export default function AdminItemManager() {
       {/* Filters */}
       <div className="card p-3 mb-4">
         <div className="row g-3">
+
+          {/* Search */}
           <div className="col-md-4">
             <label htmlFor="search" className="form-label fw-semibold">
               Search
@@ -108,6 +115,7 @@ export default function AdminItemManager() {
             />
           </div>
 
+          {/* Type Filter */}
           <div className="col-md-4">
             <label htmlFor="filterType" className="form-label fw-semibold">
               Filter by Type
@@ -116,9 +124,7 @@ export default function AdminItemManager() {
               id="filterType"
               className="form-select"
               value={filterType}
-              onChange={(e) =>
-                setFilterType(e.target.value as ItemType | 'ALL')
-              }
+              onChange={(e) => setFilterType(e.target.value as ItemType | 'ALL')}
             >
               <option value="ALL">All</option>
               <option value="LOST">Lost</option>
@@ -126,6 +132,7 @@ export default function AdminItemManager() {
             </select>
           </div>
 
+          {/* Status Filter */}
           <div className="col-md-4">
             <label htmlFor="filterStatus" className="form-label fw-semibold">
               Filter by Status
@@ -134,9 +141,7 @@ export default function AdminItemManager() {
               id="filterStatus"
               className="form-select"
               value={filterStatus}
-              onChange={(e) =>
-                setFilterStatus(e.target.value as ItemStatus | 'ALL')
-              }
+              onChange={(e) => setFilterStatus(e.target.value as ItemStatus | 'ALL')}
             >
               <option value="ALL">All</option>
               {statuses.map((s) => (
@@ -146,14 +151,17 @@ export default function AdminItemManager() {
               ))}
             </select>
           </div>
+
         </div>
       </div>
 
       {/* Results */}
       <div>
         <h5 className="mb-3">
-          <span>Showing</span>{' '}
-          <span>{filtered.length}</span>{' '}
+          <span>Showing</span>
+          {' '}
+          <span>{filtered.length}</span>
+          {' '}
           <span>{filtered.length === 1 ? 'item' : 'items'}</span>
         </h5>
 
@@ -168,25 +176,31 @@ export default function AdminItemManager() {
                 key={item.id}
                 className="border rounded p-3 mb-2 d-flex justify-content-between align-items-center"
               >
+
                 <div>
                   <strong className="d-block">{item.title}</strong>
 
                   <span className="small text-muted d-block">
-                    <span>{item.type}</span>{' '}
-                    <span>•</span>{' '}
-                    <span>{item.status}</span>{' '}
-                    <span>•</span>{' '}
-                    <span>{item.building}</span>{' '}
-                    <span>•</span>{' '}
+                    <span>{item.type}</span>
+                    {' '}
+                    <span>•</span>
+                    {' '}
+                    <span>{item.status}</span>
+                    {' '}
+                    <span>•</span>
+                    {' '}
+                    <span>{item.building}</span>
+                    {' '}
+                    <span>•</span>
+                    {' '}
                     <span>{shortDate}</span>
                   </span>
                 </div>
 
                 <div className="d-flex gap-2">
-                  <label
-                    htmlFor={`status-${item.id}`}
-                    className="visually-hidden"
-                  >
+
+                  {/* Quick Status Menu */}
+                  <label htmlFor={`status-${item.id}`} className="visually-hidden">
                     Status
                   </label>
 
@@ -205,6 +219,7 @@ export default function AdminItemManager() {
                     ))}
                   </select>
 
+                  {/* View */}
                   <Link
                     href={`/item/${item.id}`}
                     className="btn btn-outline-secondary btn-sm"
@@ -212,6 +227,7 @@ export default function AdminItemManager() {
                     View
                   </Link>
 
+                  {/* Edit */}
                   <Link
                     href={`/item/${item.id}/edit`}
                     className="btn btn-primary btn-sm"
@@ -219,12 +235,14 @@ export default function AdminItemManager() {
                     Edit
                   </Link>
 
+                  {/* Delete */}
                   <Link
                     href={`/item/${item.id}`}
                     className="btn btn-danger btn-sm"
                   >
                     Delete
                   </Link>
+
                 </div>
               </div>
             );
