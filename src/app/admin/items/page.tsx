@@ -1,5 +1,3 @@
-// src/app/admin/items/page.tsx
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,7 +7,7 @@ import { useSession } from 'next-auth/react';
 type ItemType = 'LOST' | 'FOUND';
 type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
 
-type AdminItem = {
+interface AdminItem {
   id: number;
   title: string;
   type: ItemType;
@@ -18,7 +16,7 @@ type AdminItem = {
   date: string;
   imageUrl?: string | null;
   locationName?: string | null;
-};
+}
 
 export default function AdminItemManager() {
   const { data: session } = useSession();
@@ -28,8 +26,7 @@ export default function AdminItemManager() {
   const [items, setItems] = useState<AdminItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<'ALL' | ItemType>('ALL');
-  const [filterStatus, setFilterStatus] =
-    useState<'ALL' | ItemStatus>('ALL');
+  const [filterStatus, setFilterStatus] = useState<'ALL' | ItemStatus>('ALL');
   const [search, setSearch] = useState('');
 
   async function load() {
@@ -42,9 +39,7 @@ export default function AdminItemManager() {
   }
 
   useEffect(() => {
-    if (isAdmin) {
-      load();
-    }
+    if (isAdmin) load();
   }, [isAdmin]);
 
   if (!isAdmin) {
@@ -65,11 +60,10 @@ export default function AdminItemManager() {
   }
 
   const filtered = items.filter((i) => {
-    const matchesType = filterType === 'ALL' || i.type === filterType;
-    const matchesStatus =
-      filterStatus === 'ALL' || i.status === filterStatus;
     const query = search.toLowerCase();
 
+    const matchesType = filterType === 'ALL' || i.type === filterType;
+    const matchesStatus = filterStatus === 'ALL' || i.status === filterStatus;
     const matchesSearch =
       i.title.toLowerCase().includes(query) ||
       i.building.toLowerCase().includes(query);
@@ -100,63 +94,57 @@ export default function AdminItemManager() {
       <div className="card p-3 mb-4">
         <div className="row g-3">
 
-          {/* Search */}
           <div className="col-md-4">
-            <label htmlFor="search" className="form-label fw-semibold w-100">
+            <label htmlFor="search" className="form-label fw-semibold">
               Search
-              <input
-                id="search"
-                type="text"
-                className="form-control mt-1"
-                placeholder="Search title or building…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
             </label>
+            <input
+              id="search"
+              type="text"
+              className="form-control"
+              placeholder="Search title or building…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          {/* Filter by Type */}
           <div className="col-md-4">
-            <label htmlFor="filterType" className="form-label fw-semibold w-100">
+            <label htmlFor="filterType" className="form-label fw-semibold">
               Filter by Type
-              <select
-                id="filterType"
-                className="form-select mt-1"
-                value={filterType}
-                onChange={(e) =>
-                  setFilterType(e.target.value as ItemType | 'ALL')
-                }
-              >
-                <option value="ALL">All</option>
-                <option value="LOST">Lost</option>
-                <option value="FOUND">Found</option>
-              </select>
             </label>
+            <select
+              id="filterType"
+              className="form-select"
+              value={filterType}
+              onChange={(e) =>
+                setFilterType(e.target.value as ItemType | 'ALL')
+              }
+            >
+              <option value="ALL">All</option>
+              <option value="LOST">Lost</option>
+              <option value="FOUND">Found</option>
+            </select>
           </div>
 
-          {/* Filter by Status */}
           <div className="col-md-4">
-            <label
-              htmlFor="filterStatus"
-              className="form-label fw-semibold w-100"
-            >
+            <label htmlFor="filterStatus" className="form-label fw-semibold">
               Filter by Status
-              <select
-                id="filterStatus"
-                className="form-select mt-1"
-                value={filterStatus}
-                onChange={(e) =>
-                  setFilterStatus(e.target.value as ItemStatus | 'ALL')
-                }
-              >
-                <option value="ALL">All</option>
-                {statuses.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
             </label>
+            <select
+              id="filterStatus"
+              className="form-select"
+              value={filterStatus}
+              onChange={(e) =>
+                setFilterStatus(e.target.value as ItemStatus | 'ALL')
+              }
+            >
+              <option value="ALL">All</option>
+              {statuses.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </div>
 
         </div>
@@ -189,13 +177,6 @@ export default function AdminItemManager() {
                 </div>
 
                 <div className="d-flex gap-2 align-items-center">
-                  <label
-                    htmlFor={`status-${item.id}`}
-                    className="visually-hidden"
-                  >
-                    Update Status
-                  </label>
-
                   <select
                     id={`status-${item.id}`}
                     className="form-select form-select-sm"
