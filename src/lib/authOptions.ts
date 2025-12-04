@@ -45,7 +45,7 @@ const authOptions: NextAuthOptions = {
 
         const isPasswordValid = await compare(
           credentials.password,
-          user.password
+          user.password,
         );
         if (!isPasswordValid) return null;
 
@@ -61,7 +61,7 @@ const authOptions: NextAuthOptions = {
         return {
           id: `${user.id}`,
           email: user.email,
-          randomKey: user.role, // ADMIN / USER / DISABLED
+          randomKey: user.role,
         };
       },
     }),
@@ -96,7 +96,7 @@ const authOptions: NextAuthOptions = {
 
         const isPasswordValid = await compare(
           credentials.password,
-          user.password
+          user.password,
         );
         if (!isPasswordValid) return null;
 
@@ -104,7 +104,6 @@ const authOptions: NextAuthOptions = {
           throw new Error('EmailNotVerified');
         }
 
-        // 🚫 BLOCK DISABLED ADMINS TOO
         if (user.role === 'DISABLED') {
           throw new Error('AccountDisabled');
         }
