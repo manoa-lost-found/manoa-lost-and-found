@@ -64,12 +64,21 @@ export default function AdminItemManager() {
   const filtered = items.filter((i) => {
     const matchesType = filterType === 'ALL' || i.type === filterType;
     const matchesStatus = filterStatus === 'ALL' || i.status === filterStatus;
+
     const query = search.toLowerCase();
-    const matchesSearch = i.title.toLowerCase().includes(query) || i.building.toLowerCase().includes(query);
+    const matchesSearch =
+      i.title.toLowerCase().includes(query) ||
+      i.building.toLowerCase().includes(query);
+
     return matchesType && matchesStatus && matchesSearch;
   });
 
-  const statuses: ItemStatus[] = ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'];
+  const statuses: ItemStatus[] = [
+    'OPEN',
+    'TURNED_IN',
+    'WAITING_FOR_PICKUP',
+    'RECOVERED',
+  ];
 
   async function updateStatus(id: number, status: ItemStatus) {
     await fetch(`/api/items/${id}`, {
@@ -86,9 +95,10 @@ export default function AdminItemManager() {
       {/* Filters */}
       <div className="card p-3 mb-4">
         <div className="row g-3">
-
           <div className="col-md-4">
-            <label htmlFor="search" className="form-label fw-semibold">Search</label>
+            <label htmlFor="search" className="form-label fw-semibold">
+              Search
+            </label>
             <input
               id="search"
               type="text"
@@ -100,12 +110,16 @@ export default function AdminItemManager() {
           </div>
 
           <div className="col-md-4">
-            <label htmlFor="filterType" className="form-label fw-semibold">Filter by Type</label>
+            <label htmlFor="filterType" className="form-label fw-semibold">
+              Filter by Type
+            </label>
             <select
               id="filterType"
               className="form-select"
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value as ItemType | 'ALL')}
+              onChange={(e) =>
+                setFilterType(e.target.value as ItemType | 'ALL')
+              }
             >
               <option value="ALL">All</option>
               <option value="LOST">Lost</option>
@@ -114,20 +128,25 @@ export default function AdminItemManager() {
           </div>
 
           <div className="col-md-4">
-            <label htmlFor="filterStatus" className="form-label fw-semibold">Filter by Status</label>
+            <label htmlFor="filterStatus" className="form-label fw-semibold">
+              Filter by Status
+            </label>
             <select
               id="filterStatus"
               className="form-select"
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as ItemStatus | 'ALL')}
+              onChange={(e) =>
+                setFilterStatus(e.target.value as ItemStatus | 'ALL')
+              }
             >
               <option value="ALL">All</option>
               {statuses.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
           </div>
-
         </div>
       </div>
 
@@ -164,26 +183,51 @@ export default function AdminItemManager() {
                   </span>
                 </div>
 
-                <div className="d-flex gap-2">
+                <div className="d-flex gap-2 align-items-center">
+                  <div className="d-flex flex-column">
+                    <label
+                      htmlFor={`status-${item.id}`}
+                      className="visually-hidden"
+                    >
+                      Status
+                    </label>
 
-                  <label htmlFor={`status-${item.id}`} className="visually-hidden">Status</label>
+                    <select
+                      id={`status-${item.id}`}
+                      className="form-select form-select-sm"
+                      value={item.status}
+                      onChange={(e) =>
+                        updateStatus(item.id, e.target.value as ItemStatus)
+                      }
+                    >
+                      {statuses.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                  <select
-                    id={`status-${item.id}`}
-                    className="form-select form-select-sm"
-                    value={item.status}
-                    onChange={(e) => updateStatus(item.id, e.target.value as ItemStatus)}
+                  <Link
+                    href={`/item/${item.id}`}
+                    className="btn btn-outline-secondary btn-sm"
                   >
-                    {statuses.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
+                    View
+                  </Link>
 
-                  <Link href={`/item/${item.id}`} className="btn btn-outline-secondary btn-sm">View</Link>
+                  <Link
+                    href={`/item/${item.id}/edit`}
+                    className="btn btn-primary btn-sm"
+                  >
+                    Edit
+                  </Link>
 
-                  <Link href={`/item/${item.id}/edit`} className="btn btn-primary btn-sm">Edit</Link>
-
-                  <Link href={`/item/${item.id}`} className="btn btn-danger btn-sm">Delete</Link>
+                  <Link
+                    href={`/item/${item.id}`}
+                    className="btn btn-danger btn-sm"
+                  >
+                    Delete
+                  </Link>
                 </div>
               </div>
             );
