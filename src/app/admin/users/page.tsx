@@ -13,24 +13,22 @@ type UserRecord = {
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
-
-  // FIX: use session.user.role instead of session.user.randomKey
-  const role = (session?.user as any)?.randomKey;
+  const role = (session?.user as any)?.randomKey; // your NextAuth sets randomKey = role
   const isAdmin = role === 'ADMIN';
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
-    const res = await fetch('/api/admin/users');
-    if (res.ok) {
-      const data = await res.json();
-      setUsers(data.users);
-    }
-    setLoading(false);
-  }
-
   useEffect(() => {
+    async function load() {
+      const res = await fetch('/api/admin/users');
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data.users);
+      }
+      setLoading(false);
+    }
+
     if (isAdmin) {
       load();
     }
@@ -53,22 +51,21 @@ export default function AdminUsersPage() {
     );
   }
 
-  // Promote user → ADMIN
-  async function promoteUser(userId: number) {
-    await fetch('/api/admin/promote', {
+  // API ACTION HELPERS
+  async function promoteUser(id: number) {
+    await fetch('/api/admin/users/promote', {
       method: 'POST',
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ userId: id }),
     });
-    load();
+    window.location.reload(); // reload table after update
   }
 
-  // Disable user → set role to USER
-  async function disableUser(userId: number) {
-    await fetch('/api/admin/disable', {
+  async function disableUser(id: number) {
+    await fetch('/api/admin/users/disable', {
       method: 'POST',
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ userId: id }),
     });
-    load();
+    window.location.reload(); // reload table after update
   }
 
   return (
@@ -107,6 +104,8 @@ export default function AdminUsersPage() {
 
                 <td>
                   <div className="d-flex gap-2">
+
+                    {/* VIEW USER PROFILE */}
                     <Link
                       href={`/profile/${u.id}`}
                       className="btn btn-sm btn-outline-secondary"
@@ -114,7 +113,7 @@ export default function AdminUsersPage() {
                       View Profile
                     </Link>
 
-                    {/* Promote */}
+                    {/* PROMOTE BUTTON */}
                     <button
                       type="button"
                       className="btn btn-sm btn-primary"
@@ -124,7 +123,7 @@ export default function AdminUsersPage() {
                       Promote to Admin
                     </button>
 
-                    {/* Disable */}
+                    {/* DISABLE BUTTON */}
                     <button
                       type="button"
                       className="btn btn-sm btn-danger"
@@ -133,6 +132,7 @@ export default function AdminUsersPage() {
                     >
                       Disable User
                     </button>
+
                   </div>
                 </td>
               </tr>
