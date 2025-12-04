@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       user: updated,
     });
   } catch (err) {
-    console.error('DISABLE ERROR:', err);
+    console.error('PROMOTE ERROR FULL:', err);
     return NextResponse.json(
       { error: 'Failed to disable user' },
       { status: 500 },
