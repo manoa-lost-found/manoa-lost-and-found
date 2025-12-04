@@ -62,27 +62,14 @@ export default function AdminItemManager() {
   }
 
   const filtered = items.filter((i) => {
-    const matchesType =
-      filterType === 'ALL' || i.type === filterType;
-
-    const matchesStatus =
-      filterStatus === 'ALL' || i.status === filterStatus;
-
+    const matchesType = filterType === 'ALL' || i.type === filterType;
+    const matchesStatus = filterStatus === 'ALL' || i.status === filterStatus;
     const query = search.toLowerCase();
-
-    const matchesSearch =
-      i.title.toLowerCase().includes(query)
-      || i.building.toLowerCase().includes(query);
-
+    const matchesSearch = i.title.toLowerCase().includes(query) || i.building.toLowerCase().includes(query);
     return matchesType && matchesStatus && matchesSearch;
   });
 
-  const statuses: ItemStatus[] = [
-    'OPEN',
-    'TURNED_IN',
-    'WAITING_FOR_PICKUP',
-    'RECOVERED',
-  ];
+  const statuses: ItemStatus[] = ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'];
 
   async function updateStatus(id: number, status: ItemStatus) {
     await fetch(`/api/items/${id}`, {
@@ -100,11 +87,8 @@ export default function AdminItemManager() {
       <div className="card p-3 mb-4">
         <div className="row g-3">
 
-          {/* Search */}
           <div className="col-md-4">
-            <label htmlFor="search" className="form-label fw-semibold">
-              Search
-            </label>
+            <label htmlFor="search" className="form-label fw-semibold">Search</label>
             <input
               id="search"
               type="text"
@@ -115,11 +99,8 @@ export default function AdminItemManager() {
             />
           </div>
 
-          {/* Type Filter */}
           <div className="col-md-4">
-            <label htmlFor="filterType" className="form-label fw-semibold">
-              Filter by Type
-            </label>
+            <label htmlFor="filterType" className="form-label fw-semibold">Filter by Type</label>
             <select
               id="filterType"
               className="form-select"
@@ -132,11 +113,8 @@ export default function AdminItemManager() {
             </select>
           </div>
 
-          {/* Status Filter */}
           <div className="col-md-4">
-            <label htmlFor="filterStatus" className="form-label fw-semibold">
-              Filter by Status
-            </label>
+            <label htmlFor="filterStatus" className="form-label fw-semibold">Filter by Status</label>
             <select
               id="filterStatus"
               className="form-select"
@@ -145,9 +123,7 @@ export default function AdminItemManager() {
             >
               <option value="ALL">All</option>
               {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>
@@ -158,10 +134,8 @@ export default function AdminItemManager() {
       {/* Results */}
       <div>
         <h5 className="mb-3">
-          <span>Showing</span>
-          {' '}
-          <span>{filtered.length}</span>
-          {' '}
+          <span>Showing</span>{' '}
+          <span>{filtered.length}</span>{' '}
           <span>{filtered.length === 1 ? 'item' : 'items'}</span>
         </h5>
 
@@ -176,73 +150,40 @@ export default function AdminItemManager() {
                 key={item.id}
                 className="border rounded p-3 mb-2 d-flex justify-content-between align-items-center"
               >
-
                 <div>
                   <strong className="d-block">{item.title}</strong>
 
                   <span className="small text-muted d-block">
-                    <span>{item.type}</span>
-                    {' '}
-                    <span>•</span>
-                    {' '}
-                    <span>{item.status}</span>
-                    {' '}
-                    <span>•</span>
-                    {' '}
-                    <span>{item.building}</span>
-                    {' '}
-                    <span>•</span>
-                    {' '}
+                    <span>{item.type}</span>{' '}
+                    <span>•</span>{' '}
+                    <span>{item.status}</span>{' '}
+                    <span>•</span>{' '}
+                    <span>{item.building}</span>{' '}
+                    <span>•</span>{' '}
                     <span>{shortDate}</span>
                   </span>
                 </div>
 
                 <div className="d-flex gap-2">
 
-                  {/* Quick Status Menu */}
-                  <label htmlFor={`status-${item.id}`} className="visually-hidden">
-                    Status
-                  </label>
+                  <label htmlFor={`status-${item.id}`} className="visually-hidden">Status</label>
 
                   <select
                     id={`status-${item.id}`}
                     className="form-select form-select-sm"
                     value={item.status}
-                    onChange={(e) =>
-                      updateStatus(item.id, e.target.value as ItemStatus)
-                    }
+                    onChange={(e) => updateStatus(item.id, e.target.value as ItemStatus)}
                   >
                     {statuses.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
+                      <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
 
-                  {/* View */}
-                  <Link
-                    href={`/item/${item.id}`}
-                    className="btn btn-outline-secondary btn-sm"
-                  >
-                    View
-                  </Link>
+                  <Link href={`/item/${item.id}`} className="btn btn-outline-secondary btn-sm">View</Link>
 
-                  {/* Edit */}
-                  <Link
-                    href={`/item/${item.id}/edit`}
-                    className="btn btn-primary btn-sm"
-                  >
-                    Edit
-                  </Link>
+                  <Link href={`/item/${item.id}/edit`} className="btn btn-primary btn-sm">Edit</Link>
 
-                  {/* Delete */}
-                  <Link
-                    href={`/item/${item.id}`}
-                    className="btn btn-danger btn-sm"
-                  >
-                    Delete
-                  </Link>
-
+                  <Link href={`/item/${item.id}`} className="btn btn-danger btn-sm">Delete</Link>
                 </div>
               </div>
             );
