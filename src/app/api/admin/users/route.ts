@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
-// MUST export ONLY THIS (no default export!)
+// MUST export only GET — no default export
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
@@ -9,22 +9,20 @@ export async function GET() {
         id: true,
         email: true,
         role: true,
-        // name no longer exists in schema — removed!
-        lostFoundItems: {
-          select: { id: true }, // count items
+        _count: {
+          select: { lostFoundItems: true },
         },
       },
     });
 
-    // Transform
-    const result = users.map((u) => ({
+    const formatted = users.map((u) => ({
       id: u.id,
       email: u.email,
       role: u.role,
-      itemCount: u.lostFoundItems.length,
+      itemCount: u._count.lostFoundItems,
     }));
 
-    return NextResponse.json({ users: result });
+    return NextResponse.json({ users: formatted });
   } catch (err) {
     console.error('ADMIN USERS API ERROR:', err);
     return NextResponse.json(
