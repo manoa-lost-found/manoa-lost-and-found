@@ -49,23 +49,22 @@ export default function AdminUsersPage() {
     );
   }
 
-  // FIXED: API now receives proper JSON
   async function promoteUser(id: number) {
-    await fetch('/api/admin/users/promote', {
+    await fetch('/api/admin/user-actions/promote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     });
-    load(); // refresh without full-page reload
+    load();
   }
 
   async function disableUser(id: number) {
-    await fetch('/api/admin/users/disable', {
+    await fetch('/api/admin/user-actions/disable', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     });
-    load(); // refresh without full-page reload
+    load();
   }
 
   return (
