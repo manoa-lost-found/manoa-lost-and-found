@@ -13,52 +13,21 @@ type UserRecord = {
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
-  const role = (session?.user as any)?.randomKey;
+
+  // FIX: use session.user.role instead of session.user.randomKey
+  const role = (session?.user as any)?.role;
   const isAdmin = role === 'ADMIN';
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function load() {
-    const res = await fetch('/api/admin/users', {
-      credentials: 'include',
-    });
-
+    const res = await fetch('/api/admin/users');
     if (res.ok) {
       const data = await res.json();
       setUsers(data.users);
     }
     setLoading(false);
-  }
-
-  async function promoteUser(id: number) {
-    const res = await fetch('/api/admin/users/promote', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: id }),
-    });
-
-    if (res.ok) {
-      await load(); // refresh table
-    } else {
-      console.error('Promote failed');
-    }
-  }
-
-  async function disableUser(id: number) {
-    const res = await fetch('/api/admin/users/disable', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: id }),
-    });
-
-    if (res.ok) {
-      await load(); // refresh table
-    } else {
-      console.error('Disable failed');
-    }
   }
 
   useEffect(() => {
@@ -82,6 +51,24 @@ export default function AdminUsersPage() {
         <p>Loading users…</p>
       </main>
     );
+  }
+
+  // Promote user → ADMIN
+  async function promoteUser(userId: number) {
+    await fetch('/api/admin/promote', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+    });
+    load();
+  }
+
+  // Disable user → set role to USER
+  async function disableUser(userId: number) {
+    await fetch('/api/admin/disable', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+    });
+    load();
   }
 
   return (
@@ -127,6 +114,7 @@ export default function AdminUsersPage() {
                       View Profile
                     </Link>
 
+                    {/* Promote */}
                     <button
                       type="button"
                       className="btn btn-sm btn-primary"
@@ -136,6 +124,7 @@ export default function AdminUsersPage() {
                       Promote to Admin
                     </button>
 
+                    {/* Disable */}
                     <button
                       type="button"
                       className="btn btn-sm btn-danger"
