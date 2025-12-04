@@ -43,17 +43,14 @@ const authOptions: NextAuthOptions = {
         });
         if (!user) return null;
 
-        const isPasswordValid = await compare(
-          credentials.password,
-          user.password,
-        );
+        const isPasswordValid = await compare(credentials.password, user.password);
         if (!isPasswordValid) return null;
 
         if (!user.emailVerified) {
           throw new Error('EmailNotVerified');
         }
 
-        // 🚫 BLOCK DISABLED ACCOUNTS
+        // prevent disabled users from logging in
         if (user.role === 'DISABLED') {
           throw new Error('AccountDisabled');
         }
@@ -61,12 +58,12 @@ const authOptions: NextAuthOptions = {
         return {
           id: `${user.id}`,
           email: user.email,
-          randomKey: user.role,
+          randomKey: user.role, // ADMIN | USER | DISABLED
         };
       },
     }),
 
-    // Admin login
+    // Admin login (DB role only)
     CredentialsProvider({
       id: 'admin-credentials',
       name: 'Admin Only Login',
@@ -94,18 +91,11 @@ const authOptions: NextAuthOptions = {
         });
         if (!user) return null;
 
-        const isPasswordValid = await compare(
-          credentials.password,
-          user.password,
-        );
+        const isPasswordValid = await compare(credentials.password, user.password);
         if (!isPasswordValid) return null;
 
         if (!user.emailVerified) {
           throw new Error('EmailNotVerified');
-        }
-
-        if (user.role === 'DISABLED') {
-          throw new Error('AccountDisabled');
         }
 
         if (user.role !== 'ADMIN') {
@@ -132,10 +122,14 @@ const authOptions: NextAuthOptions = {
       return isHawaiiEmail(user.email);
     },
 
+    // FIXED: DO NOT return null — NextAuth requires a valid session object
     session: ({ session, token }) => {
-      // 🚫 Auto-logout disabled accounts
+      // If a disabled user somehow has a session → wipe user info (auto-logout)
       if (token.randomKey === 'DISABLED') {
-        return null;
+        return {
+          ...session,
+          user: undefined,
+        };
       }
 
       return {
@@ -154,7 +148,7 @@ const authOptions: NextAuthOptions = {
         return {
           ...token,
           id: u.id,
-          randomKey: u.randomKey,
+          randomKey: u.randomKey, // ADMIN | USER | DISABLED
         };
       }
       return token;
