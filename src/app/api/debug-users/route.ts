@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 // TEMPORARY DEBUG ROUTE — DELETE AFTER USE
 export async function GET() {
