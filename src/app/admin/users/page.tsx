@@ -13,27 +13,29 @@ type UserRecord = {
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
-  const role = (session?.user as any)?.randomKey;
+  const role = (session?.user as any)?.randomKey; // role comes from jwt.randomKey
   const isAdmin = role === 'ADMIN';
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      const res = await fetch('/api/admin/users');
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data.users);
-      }
-      setLoading(false);
+  // reusable load function
+  async function load() {
+    const res = await fetch('/api/admin/users');
+    if (res.ok) {
+      const data = await res.json();
+      setUsers(data.users);
     }
+    setLoading(false);
+  }
 
+  useEffect(() => {
     if (isAdmin) {
       load();
     }
   }, [isAdmin]);
 
+  // not admin
   if (!isAdmin) {
     return (
       <main className="container py-5">
@@ -43,6 +45,7 @@ export default function AdminUsersPage() {
     );
   }
 
+  // loading screen
   if (loading) {
     return (
       <main className="container py-5">
@@ -98,6 +101,14 @@ export default function AdminUsersPage() {
                       type="button"
                       className="btn btn-sm btn-primary"
                       disabled={u.role === 'ADMIN'}
+                      onClick={async () => {
+                        await fetch('/api/admin/users/promote', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ userId: u.id }),
+                        });
+                        load(); // refresh table
+                      }}
                     >
                       Promote to Admin
                     </button>
@@ -106,6 +117,14 @@ export default function AdminUsersPage() {
                       type="button"
                       className="btn btn-sm btn-danger"
                       disabled={u.role === 'ADMIN'}
+                      onClick={async () => {
+                        await fetch('/api/admin/users/disable', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ userId: u.id }),
+                        });
+                        load(); // refresh table
+                      }}
                     >
                       Disable User
                     </button>
