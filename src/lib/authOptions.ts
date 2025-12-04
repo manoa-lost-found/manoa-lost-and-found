@@ -4,14 +4,10 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 
+// Allow only @hawaii.edu emails
 const isHawaiiEmail = (email: string): boolean => {
   return /^[^@\s]+@hawaii\.edu$/i.test(email.trim());
 };
-
-const ADMIN_EMAIL_WHITELIST: string[] = (process.env.ADMIN_EMAILS || '')
-  .split(',')
-  .map((e) => e.trim().toLowerCase())
-  .filter((e) => e.length > 0);
 
 const authOptions: NextAuthOptions = {
   session: {
@@ -19,71 +15,93 @@ const authOptions: NextAuthOptions = {
   },
 
   providers: [
+    // Normal login
     CredentialsProvider({
       id: 'credentials',
       name: 'Email and Password',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        email: {
+          label: 'Email',
+          type: 'email',
+          placeholder: 'you@hawaii.edu',
+        },
         password: { label: 'Password', type: 'password' },
       },
-
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) return null;
+        if (!credentials?.email || !credentials.password) {
+          return null;
+        }
 
         const email = credentials.email.trim().toLowerCase();
-        if (!isHawaiiEmail(email)) throw new Error('InvalidDomain');
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        if (!isHawaiiEmail(email)) {
+          throw new Error('InvalidDomain');
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+        });
         if (!user) return null;
 
-        const valid = await compare(credentials.password, user.password);
-        if (!valid) return null;
+        const isPasswordValid = await compare(credentials.password, user.password);
+        if (!isPasswordValid) return null;
 
-        if (!user.emailVerified) throw new Error('EmailNotVerified');
-
-        return {
-          id: `${user.id}`,
-          email: user.email,
-          role: user.role,
-        };
-      },
-    }),
-
-    CredentialsProvider({
-      id: 'admin-credentials',
-      name: 'Admin Email and Password',
-      credentials: {
-        email: { label: 'Admin Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) return null;
-
-        const email = credentials.email.trim().toLowerCase();
-        if (!isHawaiiEmail(email)) throw new Error('InvalidDomain');
-
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return null;
-
-        const valid = await compare(credentials.password, user.password);
-        if (!valid) return null;
-
-        if (!user.emailVerified) throw new Error('EmailNotVerified');
-
-        if (user.role !== 'ADMIN') throw new Error('NotAdmin');
-
-        if (
-          ADMIN_EMAIL_WHITELIST.length > 0 &&
-          !ADMIN_EMAIL_WHITELIST.includes(email)
-        ) {
-          throw new Error('NotWhitelisted');
+        if (!user.emailVerified) {
+          throw new Error('EmailNotVerified');
         }
 
         return {
           id: `${user.id}`,
           email: user.email,
-          role: user.role,
+          randomKey: user.role, // ADMIN or USER
+        };
+      },
+    }),
+
+    // Admin login (NO WHITELIST)
+    CredentialsProvider({
+      id: 'admin-credentials',
+      name: 'Admin Only Login',
+      credentials: {
+        email: {
+          label: 'Admin Email',
+          type: 'email',
+          placeholder: 'you@hawaii.edu',
+        },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials.password) {
+          return null;
+        }
+
+        const email = credentials.email.trim().toLowerCase();
+
+        if (!isHawaiiEmail(email)) {
+          throw new Error('InvalidDomain');
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+        });
+        if (!user) return null;
+
+        const isPasswordValid = await compare(credentials.password, user.password);
+        if (!isPasswordValid) return null;
+
+        if (!user.emailVerified) {
+          throw new Error('EmailNotVerified');
+        }
+
+        // ONLY check DB role (no whitelist)
+        if (user.role !== 'ADMIN') {
+          throw new Error('NotAdmin');
+        }
+
+        return {
+          id: `${user.id}`,
+          email: user.email,
+          randomKey: user.role,
         };
       },
     }),
@@ -100,25 +118,27 @@ const authOptions: NextAuthOptions = {
       return isHawaiiEmail(user.email);
     },
 
-    session({ session, token }) {
-      return {
+    session: ({ session, token }) => {
+      const newSession = {
         ...session,
         user: {
           ...session.user,
-          id: token.id as string,
-          role: token.role as string,
+          id: token.id,
+          randomKey: token.randomKey,
         },
       };
+      return newSession;
     },
 
-    jwt({ token, user }) {
+    jwt: ({ token, user }) => {
       if (user) {
-        const u = user as any;
-        return {
+        const u: any = user;
+        const newToken = {
           ...token,
           id: u.id,
-          role: u.role,
+          randomKey: u.randomKey,
         };
+        return newToken;
       }
       return token;
     },
