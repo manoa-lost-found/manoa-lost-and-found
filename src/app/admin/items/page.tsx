@@ -5,7 +5,11 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
 type ItemType = 'LOST' | 'FOUND';
-type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
+type ItemStatus =
+  | 'OPEN'
+  | 'TURNED_IN'
+  | 'WAITING_FOR_PICKUP'
+  | 'RECOVERED';
 
 type AdminItem = {
   id: number;
@@ -26,7 +30,8 @@ export default function AdminItemManager() {
   const [items, setItems] = useState<AdminItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<'ALL' | ItemType>('ALL');
-  const [filterStatus, setFilterStatus] = useState<'ALL' | ItemStatus>('ALL');
+  const [filterStatus, setFilterStatus] =
+    useState<'ALL' | ItemStatus>('ALL');
   const [search, setSearch] = useState('');
 
   async function load() {
@@ -60,11 +65,14 @@ export default function AdminItemManager() {
   }
 
   const filtered = items.filter((i) => {
-    const matchesType = filterType === 'ALL' || i.type === filterType;
-    const matchesStatus = filterStatus === 'ALL' || i.status === filterStatus;
+    const matchesType =
+      filterType === 'ALL' || i.type === filterType;
+    const matchesStatus =
+      filterStatus === 'ALL' || i.status === filterStatus;
+    const query = search.toLowerCase();
     const matchesSearch =
-      i.title.toLowerCase().includes(search.toLowerCase()) ||
-      i.building.toLowerCase().includes(search.toLowerCase());
+      i.title.toLowerCase().includes(query) ||
+      i.building.toLowerCase().includes(query);
     return matchesType && matchesStatus && matchesSearch;
   });
 
@@ -91,8 +99,14 @@ export default function AdminItemManager() {
       <div className="card p-3 mb-4">
         <div className="row g-3">
           <div className="col-md-4">
-            <label className="form-label fw-semibold">Search</label>
+            <label
+              htmlFor="search"
+              className="form-label fw-semibold"
+            >
+              Search
+            </label>
             <input
+              id="search"
               type="text"
               className="form-control"
               placeholder="Search title or building…"
@@ -102,11 +116,19 @@ export default function AdminItemManager() {
           </div>
 
           <div className="col-md-4">
-            <label className="form-label fw-semibold">Filter by Type</label>
+            <label
+              htmlFor="filterType"
+              className="form-label fw-semibold"
+            >
+              Filter by Type
+            </label>
             <select
+              id="filterType"
               className="form-select"
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value as any)}
+              onChange={(e) =>
+                setFilterType(e.target.value as ItemType | 'ALL')
+              }
             >
               <option value="ALL">All</option>
               <option value="LOST">Lost</option>
@@ -115,11 +137,19 @@ export default function AdminItemManager() {
           </div>
 
           <div className="col-md-4">
-            <label className="form-label fw-semibold">Filter by Status</label>
+            <label
+              htmlFor="filterStatus"
+              className="form-label fw-semibold"
+            >
+              Filter by Status
+            </label>
             <select
+              id="filterStatus"
               className="form-select"
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
+              onChange={(e) =>
+                setFilterStatus(e.target.value as ItemStatus | 'ALL')
+              }
             >
               <option value="ALL">All</option>
               {statuses.map((s) => (
@@ -135,15 +165,19 @@ export default function AdminItemManager() {
       {/* Results */}
       <div>
         <h5 className="mb-3">
-          Showing {filtered.length}{' '}
-          {filtered.length === 1 ? 'item' : 'items'}
+          Showing{' '}
+          <span>{filtered.length}</span>{' '}
+          <span>
+            {filtered.length === 1 ? 'item' : 'items'}
+          </span>
         </h5>
 
         {filtered.length === 0 ? (
           <p className="text-muted">No items match the filters.</p>
         ) : (
           filtered.map((item) => {
-            const shortDate = new Date(item.date).toLocaleDateString();
+            const shortDate =
+              new Date(item.date).toLocaleDateString();
 
             return (
               <div
@@ -152,18 +186,35 @@ export default function AdminItemManager() {
               >
                 <div>
                   <strong className="d-block">{item.title}</strong>
+
                   <span className="small text-muted d-block">
-                    {item.type} • {item.status} • {item.building} • {shortDate}
+                    <span>{item.type}</span>{' '}
+                    <span>•</span>{' '}
+                    <span>{item.status}</span>{' '}
+                    <span>•</span>{' '}
+                    <span>{item.building}</span>{' '}
+                    <span>•</span>{' '}
+                    <span>{shortDate}</span>
                   </span>
                 </div>
 
                 <div className="d-flex gap-2">
                   {/* Quick Status Menu */}
+                  <label
+                    htmlFor={`status-${item.id}`}
+                    className="visually-hidden"
+                  >
+                    Status
+                  </label>
                   <select
+                    id={`status-${item.id}`}
                     className="form-select form-select-sm"
                     value={item.status}
                     onChange={(e) =>
-                      updateStatus(item.id, e.target.value as ItemStatus)
+                      updateStatus(
+                        item.id,
+                        e.target.value as ItemStatus,
+                      )
                     }
                   >
                     {statuses.map((s) => (
@@ -202,4 +253,3 @@ export default function AdminItemManager() {
     </main>
   );
 }
-
