@@ -1,3 +1,5 @@
+// src/app/admin/items/page.tsx
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -13,7 +15,7 @@ type AdminItem = {
   type: ItemType;
   status: ItemStatus;
   building: string;
-  date: string;
+  date: string; // YYYY-MM-DD
   imageUrl?: string | null;
   locationName?: string | null;
 };
@@ -64,7 +66,6 @@ export default function AdminItemManager() {
   const filtered = items.filter((i) => {
     const matchesType = filterType === 'ALL' || i.type === filterType;
     const matchesStatus = filterStatus === 'ALL' || i.status === filterStatus;
-
     const query = search.toLowerCase();
     const matchesSearch =
       i.title.toLowerCase().includes(query) ||
@@ -95,57 +96,63 @@ export default function AdminItemManager() {
       {/* Filters */}
       <div className="card p-3 mb-4">
         <div className="row g-3">
+          {/* Search */}
           <div className="col-md-4">
-            <label htmlFor="search" className="form-label fw-semibold">
+            <label htmlFor="search" className="form-label fw-semibold w-100">
               Search
+              <input
+                id="search"
+                type="text"
+                className="form-control mt-1"
+                placeholder="Search title or building…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </label>
-            <input
-              id="search"
-              type="text"
-              className="form-control"
-              placeholder="Search title or building…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
           </div>
 
+          {/* Filter by Type */}
           <div className="col-md-4">
-            <label htmlFor="filterType" className="form-label fw-semibold">
+            <label htmlFor="filterType" className="form-label fw-semibold w-100">
               Filter by Type
+              <select
+                id="filterType"
+                className="form-select mt-1"
+                value={filterType}
+                onChange={(e) =>
+                  setFilterType(e.target.value as ItemType | 'ALL')
+                }
+              >
+                <option value="ALL">All</option>
+                <option value="LOST">Lost</option>
+                <option value="FOUND">Found</option>
+              </select>
             </label>
-            <select
-              id="filterType"
-              className="form-select"
-              value={filterType}
-              onChange={(e) =>
-                setFilterType(e.target.value as ItemType | 'ALL')
-              }
-            >
-              <option value="ALL">All</option>
-              <option value="LOST">Lost</option>
-              <option value="FOUND">Found</option>
-            </select>
           </div>
 
+          {/* Filter by Status */}
           <div className="col-md-4">
-            <label htmlFor="filterStatus" className="form-label fw-semibold">
-              Filter by Status
-            </label>
-            <select
-              id="filterStatus"
-              className="form-select"
-              value={filterStatus}
-              onChange={(e) =>
-                setFilterStatus(e.target.value as ItemStatus | 'ALL')
-              }
+            <label
+              htmlFor="filterStatus"
+              className="form-label fw-semibold w-100"
             >
-              <option value="ALL">All</option>
-              {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              Filter by Status
+              <select
+                id="filterStatus"
+                className="form-select mt-1"
+                value={filterStatus}
+                onChange={(e) =>
+                  setFilterStatus(e.target.value as ItemStatus | 'ALL')
+                }
+              >
+                <option value="ALL">All</option>
+                {statuses.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
       </div>
@@ -153,9 +160,9 @@ export default function AdminItemManager() {
       {/* Results */}
       <div>
         <h5 className="mb-3">
-          <span>Showing</span>{' '}
-          <span>{filtered.length}</span>{' '}
-          <span>{filtered.length === 1 ? 'item' : 'items'}</span>
+          {`Showing ${filtered.length} ${
+            filtered.length === 1 ? 'item' : 'items'
+          }`}
         </h5>
 
         {filtered.length === 0 ? (
@@ -171,42 +178,33 @@ export default function AdminItemManager() {
               >
                 <div>
                   <strong className="d-block">{item.title}</strong>
-
                   <span className="small text-muted d-block">
-                    <span>{item.type}</span>{' '}
-                    <span>•</span>{' '}
-                    <span>{item.status}</span>{' '}
-                    <span>•</span>{' '}
-                    <span>{item.building}</span>{' '}
-                    <span>•</span>{' '}
-                    <span>{shortDate}</span>
+                    {`${item.type} • ${item.status} • ${item.building} • ${shortDate}`}
                   </span>
                 </div>
 
                 <div className="d-flex gap-2 align-items-center">
-                  <div className="d-flex flex-column">
-                    <label
-                      htmlFor={`status-${item.id}`}
-                      className="visually-hidden"
-                    >
-                      Status
-                    </label>
-
-                    <select
-                      id={`status-${item.id}`}
-                      className="form-select form-select-sm"
-                      value={item.status}
-                      onChange={(e) =>
-                        updateStatus(item.id, e.target.value as ItemStatus)
-                      }
-                    >
-                      {statuses.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Quick Status Menu */}
+                  <label
+                    htmlFor={`status-${item.id}`}
+                    className="visually-hidden"
+                  >
+                    Status
+                  </label>
+                  <select
+                    id={`status-${item.id}`}
+                    className="form-select form-select-sm"
+                    value={item.status}
+                    onChange={(e) =>
+                      updateStatus(item.id, e.target.value as ItemStatus)
+                    }
+                  >
+                    {statuses.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
 
                   <Link
                     href={`/item/${item.id}`}
