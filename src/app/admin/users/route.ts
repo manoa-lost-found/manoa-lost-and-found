@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const users = await prisma.user.findMany({
       include: {
-        items: true, // adjust if your model is named differently
+        items: true, // adjust if your model name is different
       },
     });
 
@@ -20,7 +20,9 @@ export async function GET() {
     return NextResponse.json({ users: result });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: 'Failed to load users' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to load users' },
+      { status: 500 },
+    );
   }
 }
-
