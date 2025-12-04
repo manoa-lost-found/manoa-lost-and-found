@@ -14,12 +14,12 @@ export async function POST(req: Request) {
 
     const updated = await prisma.user.update({
       where: { id: Number(userId) },
-      data: { role: 'USER' }, // or DISABLED if you add that enum
+      data: { role: 'USER' }, // or create DISABLED role if needed
     });
 
     return NextResponse.json({ success: true, user: updated });
   } catch (err) {
-    console.error(err);
+    console.error('DISABLE ERROR:', err);
     return NextResponse.json(
       { error: 'Failed to disable user' },
       { status: 500 },
