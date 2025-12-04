@@ -24,7 +24,8 @@
     "react/jsx-props-no-spreading": "off",
     "react/react-in-jsx-scope": "off",
     "jsx-a11y/label-has-associated-control": "off",
-    "import/prefer-default-export": "off"   // ← NEW FIX
+
+    "import/no-named-as-default": "off"   ← **ADD THIS**
   },
   "overrides": [
     {
