@@ -15,7 +15,7 @@ export default function AdminUsersPage() {
   const { data: session } = useSession();
 
   // FIX: use session.user.role instead of session.user.randomKey
-  const role = (session?.user as any)?.role;
+  const role = (session?.user as any)?.randomKey;
   const isAdmin = role === 'ADMIN';
 
   const [users, setUsers] = useState<UserRecord[]>([]);
