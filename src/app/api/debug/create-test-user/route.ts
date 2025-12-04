@@ -7,18 +7,17 @@ export async function GET() {
     const email = 'testuser@hawaii.edu';
     const password = 'Test123!';
 
-    // Hash pw
     const hash = await bcrypt.hash(password, 10);
 
-    // Create OR update existing
-    const user = await prisma.user.upsert({
+    // Create or update the test user
+    await prisma.user.upsert({
       where: { email },
       update: { password: hash, role: 'USER', emailVerified: new Date() },
       create: {
         email,
         password: hash,
         role: 'USER',
-        emailVerified: new Date(), // bypass verification
+        emailVerified: new Date(),
       },
     });
 
