@@ -8,7 +8,6 @@ export async function GET() {
     const users = await prisma.user.findMany({
       select: {
         id: true,
-        name: true,
         email: true,
         randomKey: true,
       },
@@ -16,7 +15,7 @@ export async function GET() {
 
     const result = users.map((u) => ({
       id: u.id,
-      name: u.name,
+      name: null,        // fallback, since no name in DB
       email: u.email,
       role: u.randomKey ?? 'USER',
     }));
