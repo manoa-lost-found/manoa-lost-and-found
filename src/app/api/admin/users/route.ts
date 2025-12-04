@@ -15,7 +15,7 @@ export async function GET() {
 
     const result = users.map((u) => ({
       id: u.id,
-      name: null,        // fallback, since no name in DB
+      name: null, // fallback, since no name in DB
       email: u.email,
       role: u.randomKey ?? 'USER',
     }));
