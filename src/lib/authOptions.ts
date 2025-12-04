@@ -4,12 +4,10 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 
-// simple UH email checker
 const isHawaiiEmail = (email: string): boolean => {
   return /^[^@\s]+@hawaii\.edu$/i.test(email.trim());
 };
 
-// admin whitelist (optional)
 const ADMIN_EMAIL_WHITELIST: string[] = (process.env.ADMIN_EMAILS || '')
   .split(',')
   .map((e) => e.trim().toLowerCase())
@@ -21,7 +19,6 @@ const authOptions: NextAuthOptions = {
   },
 
   providers: [
-    // Normal login
     CredentialsProvider({
       id: 'credentials',
       name: 'Email and Password',
@@ -47,12 +44,11 @@ const authOptions: NextAuthOptions = {
         return {
           id: `${user.id}`,
           email: user.email,
-          role: user.role,   // <-- FIXED
+          role: user.role,
         };
       },
     }),
 
-    // Admin login
     CredentialsProvider({
       id: 'admin-credentials',
       name: 'Admin Email and Password',
@@ -87,7 +83,7 @@ const authOptions: NextAuthOptions = {
         return {
           id: `${user.id}`,
           email: user.email,
-          role: user.role,  // <-- FIXED
+          role: user.role,
         };
       },
     }),
@@ -104,24 +100,25 @@ const authOptions: NextAuthOptions = {
       return isHawaiiEmail(user.email);
     },
 
-    // FIXED SESSION CALLBACK
     session({ session, token }) {
       return {
         ...session,
         user: {
           ...session.user,
-          id: token.id,
-          role: token.role,  // <-- FIXED
+          id: token.id as string,
+          role: token.role as string,
         },
       };
     },
 
-    // FIXED JWT CALLBACK
     jwt({ token, user }) {
       if (user) {
         const u = user as any;
-        token.id = u.id;
-        token.role = u.role; // <-- FIXED
+        return {
+          ...token,
+          id: u.id,
+          role: u.role,
+        };
       }
       return token;
     },
