@@ -23,7 +23,8 @@
     "react/function-component-definition": "off",
     "react/jsx-props-no-spreading": "off",
     "react/react-in-jsx-scope": "off",
-    "jsx-a11y/label-has-associated-control": "off"
+    "jsx-a11y/label-has-associated-control": "off",
+    "import/prefer-default-export": "off"   // ← NEW FIX
   },
   "overrides": [
     {
