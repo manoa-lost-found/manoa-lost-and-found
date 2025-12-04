@@ -12,9 +12,9 @@ type UserRecord = {
 };
 
 export default function AdminUsersPage() {
- const { data: session } = useSession();
-const role = (session?.user as any)?.randomKey; // FIXED
-const isAdmin = role === 'ADMIN';
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.randomKey;
+  const isAdmin = role === 'ADMIN';
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
