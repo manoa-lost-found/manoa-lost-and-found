@@ -14,10 +14,13 @@ export async function POST(req: Request) {
 
     const updated = await prisma.user.update({
       where: { id: Number(userId) },
-      data: { role: 'ADMIN' },
+      data: { role: 'ADMIN' }, // Prisma enum Role.ADMIN
     });
 
-    return NextResponse.json({ success: true, user: updated });
+    return NextResponse.json({
+      success: true,
+      user: updated,
+    });
   } catch (err) {
     console.error('PROMOTE ERROR:', err);
     return NextResponse.json(
