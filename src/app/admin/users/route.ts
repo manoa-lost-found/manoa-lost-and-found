@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import db from '@/lib/prisma';
 
-export async function GET() {
+// default export to satisfy ESLint import/prefer-default-export
+export default async function handler() {
   try {
-    const users = await prisma.user.findMany({
+    const users = await db.user.findMany({
       include: {
-        items: true, // adjust if your model name is different
+        items: true,
       },
     });
 
