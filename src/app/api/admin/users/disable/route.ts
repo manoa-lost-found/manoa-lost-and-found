@@ -14,11 +14,10 @@ export async function POST(req: Request) {
 
     const updated = await prisma.user.update({
       where: { id: Number(userId) },
-      data: { role: 'USER' }, // Or DISABLED if you add that
+      data: { role: 'USER' }, // or DISABLED if you add that enum
     });
 
     return NextResponse.json({ success: true, user: updated });
-
   } catch (err) {
     console.error(err);
     return NextResponse.json(
