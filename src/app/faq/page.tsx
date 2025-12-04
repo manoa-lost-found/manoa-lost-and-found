@@ -35,11 +35,13 @@ export default function FAQPage() {
                 }}
               >
                 <p className="mb-0 text-muted" style={{ fontSize: '0.95rem' }}>
-                  📢 <strong>Tip:</strong> The quickest way to reunite items
-                  is by giving clear descriptions and checking the feed often.
+                  📢{' '}
+                  <strong>Tip:</strong>
+                  {' '}
+                  The quickest way to reunite items is by giving clear
+                  descriptions and checking the feed often.
                 </p>
               </div>
-
             </div>
           </div>
         </section>
@@ -50,15 +52,19 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">🔍 How do I report a lost item?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  🔍 How do I report a lost item?
+                </h2>
                 <p className="text-muted mb-2">
-                  Go to the{' '}
+                  Go to the
+                  {' '}
                   <Link
                     href="/report/lost"
                     className="fw-semibold text-decoration-none"
                   >
                     Report Lost
-                  </Link>{' '}
+                  </Link>
+                  {' '}
                   page to submit details about your missing item.
                 </p>
                 <p className="text-muted mb-0">
@@ -75,15 +81,19 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">📦 How do I report a found item?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  📦 How do I report a found item?
+                </h2>
                 <p className="text-muted mb-2">
-                  Use the{' '}
+                  Use the
+                  {' '}
                   <Link
                     href="/report/found"
                     className="fw-semibold text-decoration-none"
                   >
                     Report Found
-                  </Link>{' '}
+                  </Link>
+                  {' '}
                   page to list an item you discovered.
                 </p>
                 <p className="text-muted mb-0">
@@ -100,12 +110,16 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">📋 Where can I see all reported items?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  📋 Where can I see all reported items?
+                </h2>
                 <p className="text-muted mb-2">
-                  Visit the{' '}
+                  Visit the
+                  {' '}
                   <span className="fw-semibold">
                     Lost &amp; Found Feed
-                  </span>{' '}
+                  </span>
+                  {' '}
                   (available only to logged-in users) to browse campus-wide reports.
                 </p>
                 <p className="text-muted mb-0">
@@ -121,7 +135,9 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">🎓 Do I need a UH email to use this site?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  🎓 Do I need a UH email to use this site?
+                </h2>
                 <p className="text-muted mb-0">
                   Yes. You must sign in with a University of Hawaiʻi email
                   address to create or manage lost and found posts. This helps
@@ -136,15 +152,19 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">🧺 How do I turn in a lost item?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  🧺 How do I turn in a lost item?
+                </h2>
                 <p className="text-muted mb-2">
-                  View the{' '}
+                  View the
+                  {' '}
                   <Link
                     href="/instructions/turn-in"
                     className="fw-semibold text-decoration-none"
                   >
                     Turn In Instructions
-                  </Link>{' '}
+                  </Link>
+                  {' '}
                   page for details on turning in a lost item.
                 </p>
                 <p className="text-muted mb-0">
@@ -161,15 +181,19 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">✅ How do I recover a found item?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  ✅ How do I recover a found item?
+                </h2>
                 <p className="text-muted mb-2">
-                  View the{' '}
+                  View the
+                  {' '}
                   <Link
                     href="/instructions/recovery"
                     className="fw-semibold text-decoration-none"
                   >
                     Recovery Instructions
-                  </Link>{' '}
+                  </Link>
+                  {' '}
                   page for step-by-step guidance when your item is found.
                 </p>
                 <p className="text-muted mb-0">
@@ -186,7 +210,9 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">⚠️ What if the item looks valuable or suspicious?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  ⚠️ What if the item looks valuable or suspicious?
+                </h2>
                 <p className="text-muted mb-0">
                   For wallets, IDs, keys, electronics, or anything that looks
                   suspicious, turn it in to an official UH office or the
@@ -200,7 +226,9 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">🛠️ Who can remove or edit posts?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  🛠️ Who can remove or edit posts?
+                </h2>
                 <p className="text-muted mb-0">
                   You can delete your own posts. Admins may remove posts that are
                   inappropriate, unsafe, or unrelated to UH Mānoa. If you think a
@@ -214,7 +242,9 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">🏛️ Is this an official UH service?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  🏛️ Is this an official UH service?
+                </h2>
                 <p className="text-muted mb-0">
                   No. This site is student-built and not an official UH service.
                   For official policies or emergency info, always refer to UH
@@ -228,16 +258,17 @@ export default function FAQPage() {
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
-                <h2 className="h5 fw-bold mb-2">❓ Still need help?</h2>
+                <h2 className="h5 fw-bold mb-2">
+                  ❓ Still need help?
+                </h2>
                 <p className="text-muted mb-0">
-                  If your question isn't answered here, sign in and contact an
+                  If your question isn&apos;t answered here, sign in and contact an
                   admin or talk with your project lead/instructor. For emergencies,
                   call UH Department of Public Safety immediately. ❤️
                 </p>
               </div>
             </div>
           </div>
-
         </section>
       </div>
     </main>
