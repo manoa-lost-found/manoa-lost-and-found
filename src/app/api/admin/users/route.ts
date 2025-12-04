@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma'; // named import is correct
 
-// MUST export only GET — no default export
+// Next.js Route Handler for /api/admin/users
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
@@ -9,22 +9,22 @@ export async function GET() {
         id: true,
         email: true,
         role: true,
-        _count: {
-          select: { lostFoundItems: true },
+        lostFoundItems: {
+          select: { id: true },
         },
       },
     });
 
-    const formatted = users.map((u) => ({
+    const result = users.map((u) => ({
       id: u.id,
       email: u.email,
       role: u.role,
-      itemCount: u._count.lostFoundItems,
+      itemCount: u.lostFoundItems.length,
     }));
 
-    return NextResponse.json({ users: formatted });
-  } catch (err) {
-    console.error('ADMIN USERS API ERROR:', err);
+    return NextResponse.json({ users: result });
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: 'Failed to load users' },
       { status: 500 },
