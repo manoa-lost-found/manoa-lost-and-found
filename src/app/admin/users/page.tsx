@@ -5,16 +5,15 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
 type UserRecord = {
-  id: string;
-  name: string | null;
+  id: number;
   email: string;
-  role: string | null; // how many items they posted
+  role: 'ADMIN' | 'USER';
   itemCount: number;
 };
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
-  const role = (session?.user as any)?.randomKey;
+  const role = (session?.user as any)?.role; // your schema uses "role"
   const isAdmin = role === 'ADMIN';
 
   const [users, setUsers] = useState<UserRecord[]>([]);
@@ -54,25 +53,24 @@ export default function AdminUsersPage() {
 
   return (
     <main className="container py-4">
-      <h1 className="fw-bold mb-3">Admin: User Accounts</h1>
+      <h1 className="fw-bold mb-4">Admin: User Accounts</h1>
 
-      <div className="card p-3">
+      <div className="card p-3 shadow-sm">
         <table className="table table-striped align-middle">
           <thead>
             <tr>
-              <th>Name</th>
               <th>Email</th>
               <th>Role</th>
               <th>Posts</th>
-              <th>Actions</th>
+              <th style={{ width: '250px' }}>Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
-                <td>{u.name ?? '—'}</td>
                 <td>{u.email}</td>
+
                 <td>
                   <span
                     className={
@@ -81,9 +79,10 @@ export default function AdminUsersPage() {
                         : 'badge bg-secondary'
                     }
                   >
-                    {u.role ?? 'USER'}
+                    {u.role}
                   </span>
                 </td>
+
                 <td>{u.itemCount}</td>
 
                 <td>
@@ -92,30 +91,29 @@ export default function AdminUsersPage() {
                       href={`/profile/${u.id}`}
                       className="btn btn-sm btn-outline-secondary"
                     >
-                      View
+                      View Profile
                     </Link>
 
                     <button
                       type="button"
                       className="btn btn-sm btn-primary"
-                      onClick={() => console.log('Promote coming soon')}
+                      disabled={u.role === 'ADMIN'}
                     >
-                      Promote
+                      Promote to Admin
                     </button>
 
                     <button
                       type="button"
                       className="btn btn-sm btn-danger"
-                      onClick={() => console.log('Disable coming soon')}
+                      disabled={u.role === 'ADMIN'}
                     >
-                      Disable
+                      Disable User
                     </button>
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
     </main>
