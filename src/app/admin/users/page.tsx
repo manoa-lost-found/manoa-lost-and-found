@@ -13,22 +13,22 @@ type UserRecord = {
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
-  const role = (session?.user as any)?.role; // your schema uses "role"
+  const role = (session?.user as any)?.role;
   const isAdmin = role === 'ADMIN';
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
-    const res = await fetch('/api/admin/users');
-    if (res.ok) {
-      const data = await res.json();
-      setUsers(data.users);
-    }
-    setLoading(false);
-  }
-
   useEffect(() => {
+    async function load() {
+      const res = await fetch('/api/admin/users');
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data.users);
+      }
+      setLoading(false);
+    }
+
     if (isAdmin) {
       load();
     }
