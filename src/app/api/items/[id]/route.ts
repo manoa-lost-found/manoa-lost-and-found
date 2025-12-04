@@ -23,19 +23,18 @@ function toResponseItem(item: any) {
   };
 }
 
-// GET /api/items/[id] – public, used by detail/edit pages
+// GET /api/items/[id]
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } },
 ) {
   const id = Number(params.id);
+
   if (Number.isNaN(id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
   }
 
-  const item = await prisma.lostFoundItem.findUnique({
-    where: { id },
-  });
+  const item = await prisma.lostFoundItem.findUnique({ where: { id } });
 
   if (!item) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -44,27 +43,26 @@ export async function GET(
   return NextResponse.json({ item: toResponseItem(item) }, { status: 200 });
 }
 
-// PUT /api/items/[id] – owner or admin only
+// PUT /api/items/[id] – update item
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
   const session = await getServerSession(authOptions);
   const userId = Number((session?.user as any)?.id);
-  const role = (session?.user as any)?.randomKey; // 'USER' | 'ADMIN'
+  const role = (session?.user as any)?.randomKey;
 
   if (!userId) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
   const id = Number(params.id);
+
   if (Number.isNaN(id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
   }
 
-  const existing = await prisma.lostFoundItem.findUnique({
-    where: { id },
-  });
+  const existing = await prisma.lostFoundItem.findUnique({ where: { id } });
 
   if (!existing) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -80,24 +78,29 @@ export async function PUT(
   const body = await req.json();
 
   const data: any = {};
+
   if (body.title !== undefined) data.title = String(body.title);
   if (body.description !== undefined) data.description = String(body.description);
   if (body.category !== undefined) data.category = String(body.category);
   if (body.building !== undefined) data.building = String(body.building);
   if (body.term !== undefined) data.term = String(body.term);
   if (body.date !== undefined) data.date = new Date(body.date);
-  if (body.locationName !== undefined) data.locationName = body.locationName || null;
 
-  // ⭐⭐ THIS IS THE FIX ⭐⭐
-  if (body.imageUrl !== undefined) {
-    data.imageUrl = body.imageUrl || null;
+  if (body.locationName !== undefined) {
+    data.locationName = body.locationName || null;
   }
 
+  // ⭐ Fixed ESLint operator-linebreak rule ⭐
   if (
-    body.status &&
-    ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)
+    body.status
+    && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)
   ) {
     data.status = body.status as LostFoundStatus;
+  }
+
+  // ⭐ Image editing support
+  if (body.imageUrl !== undefined) {
+    data.imageUrl = body.imageUrl || null;
   }
 
   const updated = await prisma.lostFoundItem.update({
@@ -108,7 +111,7 @@ export async function PUT(
   return NextResponse.json({ item: toResponseItem(updated) }, { status: 200 });
 }
 
-// DELETE /api/items/[id] – owner or admin only
+// DELETE /api/items/[id]
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: { id: string } },
@@ -122,13 +125,12 @@ export async function DELETE(
   }
 
   const id = Number(params.id);
+
   if (Number.isNaN(id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
   }
 
-  const existing = await prisma.lostFoundItem.findUnique({
-    where: { id },
-  });
+  const existing = await prisma.lostFoundItem.findUnique({ where: { id } });
 
   if (!existing) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
