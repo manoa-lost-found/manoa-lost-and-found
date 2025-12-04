@@ -1,71 +1,222 @@
+'use client';
+
+import { Container, Row, Col, Card } from 'react-bootstrap';
+
 export default function RecoveryInstructionsPage() {
   return (
-    <main className="container mt-4">
-      <h1 className="fw-bold">How to Recover an Item</h1>
+    <main className="landing-main">
+      <Container>
+        <Row className="g-4">
+          {/* LEFT COLUMN — Recovery Steps */}
+          <Col lg={6}>
+            <Card className="landing-card h-100 rounded-4">
+              <Card.Body className="p-4">
 
-      <p className="lead text-muted">
-        Follow these steps to recover an item reported in the Lost &amp; Found
-        system.
-      </p>
+                <h1 className="landing-title mb-3">How to Recover a Lost Item</h1>
 
-      <section className="mt-4">
-        <h2 className="h5">1. Search the Lost &amp; Found feed</h2>
-        <p>
-          Check the campus-wide feed for your item. Use the filters for
-          category, building, and term to narrow results. If you find a
-          matching listing, note the pickup location and any identifying
-          details before contacting staff.
-        </p>
-      </section>
+                <p className="landing-subtitle mb-4">
+                  If your item was found and reported, follow these steps to
+                  confirm ownership and pick it up from an official UH Mānoa
+                  location.
+                </p>
 
-      <section className="mt-3">
-        <h2 className="h5">2. Prepare proof of ownership</h2>
-        <p>
-          You must verify ownership. Staff will ask security questions about
-          details in the lost-item post. Acceptable additional proof includes
-          receipts, item serial numbers, initials or a name on the item, or
-          photos showing distinguishing marks. Your email address must match
-          the one used to report the lost item.
-        </p>
-      </section>
+                {/* Step 1 */}
+                <section className="mb-3">
+                  <h2 className="landing-left-eyebrow">1. Check your notifications</h2>
+                  <p className="landing-copy">
+                    When someone finds an item that matches your Lost report, you’ll
+                    receive a UH email notification. This message includes the basic
+                    item details and the pickup location selected by the finder.
+                  </p>
+                  <p className="landing-copy">
+                    If you haven’t submitted a Lost report yet, create one — it’s the
+                    only way to receive notifications.
+                  </p>
+                </section>
 
-      <section className="mt-3">
-        <h2 className="h5">3. Visit the pickup location</h2>
-        <p>
-          Items are held at either Hamilton Library or Campus Center. Bring
-          your photo ID and proof of ownership. Only the owner of the item
-          may recover it — friends or family members cannot claim items on
-          your behalf.
-        </p>
-      </section>
+                {/* Step 2 */}
+                <section className="mb-3">
+                  <h2 className="landing-left-eyebrow">2. Confirm the listing matches your item</h2>
+                  <p className="landing-copy">
+                    Open the item’s listing in the Lost &amp; Found feed. Compare its
+                    description to what you lost — colors, brand, case, accessories,
+                    or any general identifying features.
+                  </p>
+                  <p className="landing-copy">
+                    Private or sensitive information is never shown publicly for your
+                    protection. Final ownership checks happen in person.
+                  </p>
+                </section>
 
-      <section className="mt-3">
-        <h2 className="h5">4. If you do not see your item</h2>
-        <p>
-          If the feed does not show a match, create a new Lost report using
-          the Report Lost form. Provide a detailed description, the date and
-          location where you last had the item, and an optional photo. Staff
-          will update the feed when items are turned in.
-        </p>
-      </section>
+                {/* Step 3 */}
+                <section className="mb-3">
+                  <h2 className="landing-left-eyebrow">3. Prepare proof of ownership</h2>
+                  <p className="landing-copy">
+                    Staff will ask questions that confirm the item is yours. Be
+                    prepared to describe:
+                  </p>
+                  <ul>
+                    <li>Where and when you last had the item</li>
+                    <li>Unique features (scratches, stickers, engravings)</li>
+                    <li>Approximate contents (for bags or wallets)</li>
+                    <li>Partial serial numbers or identifying marks</li>
+                  </ul>
+                  <p className="landing-copy">
+                    Helpful extra proof includes photos, receipts, or screenshots.
+                    Your UH email must match the one used on your Lost report.
+                  </p>
+                </section>
 
-      <section className="mt-3">
-        <h2 className="h5">5. Pickup locations</h2>
-        <p>
-          Hamilton Library and Campus Center are the only two locations where
-          items are held for pickup. If an item was turned in at one of these
-          locations, you must pick it up at that same location. Check the item
-          listing to see where it is held.
-        </p>
-      </section>
+                {/* Step 4 */}
+                <section className="mb-3">
+                  <h2 className="landing-left-eyebrow">4. Visit the correct pickup location</h2>
+                  <p className="landing-copy">
+                    Items must be picked up at the exact location chosen by the
+                    person who found them. This location is shown on the listing and
+                    in your notification.
+                  </p>
+                  <p className="landing-copy">
+                    Bring your photo ID. Only the owner may pick up the item — staff
+                    cannot release items to anyone else.
+                  </p>
+                </section>
 
-      <hr />
+                {/* Step 5 */}
+                <section className="mb-3">
+                  <h2 className="landing-left-eyebrow">5. If your item isn’t listed</h2>
+                  <p className="landing-copy">
+                    If you don’t see your item in the feed, submit a Lost report with
+                    a detailed description, last known location, and optional photo.
+                    Staff update the system as items are found or turned in.
+                  </p>
+                </section>
+              </Card.Body>
+            </Card>
+          </Col>
 
-      <p className="small landing-copy">
-        Note: Items held at Hamilton Library or Campus Center are
-        protected by security questions and email verification. Please
-        follow staff instructions.
-      </p>
+          {/* RIGHT COLUMN — Official Pickup Locations */}
+          <Col lg={6}>
+            <Card className="landing-card h-100 rounded-4">
+              <Card.Body className="p-4 text-center">
+
+                <h2 className="landing-bottom-title mb-1 text-center-override">
+                  Pickup Locations
+                </h2>
+
+                <p className="mb-4 text-center-override">
+                  Items can be recovered only from official UH Mānoa locations.
+                </p>
+
+                <div className="d-flex flex-column align-items-center">
+
+                  {/* Campus Center */}
+                  <Card className="landing-card-sm mb-3" style={{ width: '100%' }}>
+                    <Card.Body className="text-center p-3">
+                      <h3 className="fw-semibold mb-2">Campus Center (Information Desk)</h3>
+                      <p className="landing-copy mb-1">Mon–Fri • 8:00am–6:00pm</p>
+                      <p className="landing-copy mb-3">(808) 956-8178</p>
+                      <a
+                        href="https://manoa.hawaii.edu/campuscenter/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="landing-cta-btn"
+                      >
+                        View on map
+                      </a>
+                    </Card.Body>
+                  </Card>
+
+                  {/* Hamilton Library */}
+                  <Card className="landing-card-sm mb-3" style={{ width: '100%' }}>
+                    <Card.Body className="text-center p-3">
+                      <h3 className="fw-semibold mb-2">Hamilton Library (Front Desk)</h3>
+                      <p className="landing-copy mb-1">Mon–Sat • 9:00am–5:00pm</p>
+                      <p className="landing-copy mb-3">(808) 956-7204</p>
+                      <a
+                        href="https://manoa.hawaii.edu/library/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="landing-cta-btn"
+                      >
+                        View on map
+                      </a>
+                    </Card.Body>
+                  </Card>
+
+                  {/* Sinclair Library */}
+                  <Card className="landing-card-sm mb-3" style={{ width: '100%' }}>
+                    <Card.Body className="text-center p-3">
+                      <h3 className="fw-semibold mb-2">Sinclair Library (Service Desk)</h3>
+                      <p className="landing-copy mb-1">Mon–Fri • 8:00am–5:00pm</p>
+                      <p className="landing-copy mb-3">(808) 956-8308</p>
+                      <a
+                        href="https://manoa.hawaii.edu/library/about/contact/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="landing-cta-btn"
+                      >
+                        View on map
+                      </a>
+                    </Card.Body>
+                  </Card>
+
+                  {/* Hemenway Hall */}
+                  <Card className="landing-card-sm mb-3" style={{ width: '100%' }}>
+                    <Card.Body className="text-center p-3">
+                      <h3 className="fw-semibold mb-2">Hemenway Hall (Student Services)</h3>
+                      <p className="landing-copy mb-1">Mon–Fri • 8:30am–4:30pm</p>
+                      <p className="landing-copy mb-3">(808) 956-7366</p>
+                      <a
+                        href="https://manoa.hawaii.edu/hemway/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="landing-cta-btn"
+                      >
+                        View on map
+                      </a>
+                    </Card.Body>
+                  </Card>
+
+                  {/* Bilger Hall */}
+                  <Card className="landing-card-sm mb-3" style={{ width: '100%' }}>
+                    <Card.Body className="text-center p-3">
+                      <h3 className="fw-semibold mb-2">Bilger Hall (Department Office)</h3>
+                      <p className="landing-copy mb-1">Mon–Fri • 8:00am–4:00pm</p>
+                      <p className="landing-copy mb-3">(808) 956-7480</p>
+                      <a
+                        href="https://manoa.hawaii.edu/chem/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="landing-cta-btn"
+                      >
+                        View on map
+                      </a>
+                    </Card.Body>
+                  </Card>
+
+                  {/* Art Building */}
+                  <Card className="landing-card-sm mb-3" style={{ width: '100%' }}>
+                    <Card.Body className="text-center p-3">
+                      <h3 className="fw-semibold mb-2">Art Building (Main Office)</h3>
+                      <p className="landing-copy mb-1">Mon–Fri • 8:00am–4:00pm</p>
+                      <p className="landing-copy mb-3">(808) 956-8251</p>
+                      <a
+                        href="https://hawaii.edu/art/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="landing-cta-btn"
+                      >
+                        View on map
+                      </a>
+                    </Card.Body>
+                  </Card>
+
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     </main>
   );
 }
