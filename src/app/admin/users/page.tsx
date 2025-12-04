@@ -8,8 +8,8 @@ type UserRecord = {
   id: string;
   name: string | null;
   email: string;
-  role: string | null; // "ADMIN" | "USER"
-  itemCount: number;   // how many items they posted
+  role: string | null; // how many items they posted
+  itemCount: number;
 };
 
 export default function AdminUsersPage() {
@@ -98,7 +98,7 @@ export default function AdminUsersPage() {
                     <button
                       type="button"
                       className="btn btn-sm btn-primary"
-                      onClick={() => alert('Promote coming soon')}
+                      onClick={() => console.log('Promote coming soon')}
                     >
                       Promote
                     </button>
@@ -106,7 +106,7 @@ export default function AdminUsersPage() {
                     <button
                       type="button"
                       className="btn btn-sm btn-danger"
-                      onClick={() => alert('Disable coming soon')}
+                      onClick={() => console.log('Disable coming soon')}
                     >
                       Disable
                     </button>
@@ -121,4 +121,3 @@ export default function AdminUsersPage() {
     </main>
   );
 }
-
