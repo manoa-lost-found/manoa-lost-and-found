@@ -18,23 +18,21 @@ export default function AdminUsersPage() {
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
 
   async function load() {
-    const res = await fetch('/api/admin/users', { cache: 'no-store' });
+    const res = await fetch('/api/admin/users', {
+      cache: 'no-store',
+    });
 
     if (res.ok) {
       const data = await res.json();
       setUsers(data.users);
     }
-
     setLoading(false);
   }
 
   useEffect(() => {
-    if (isAdmin) {
-      load();
-    }
+    if (isAdmin) load();
   }, [isAdmin]);
 
   if (!isAdmin) {
@@ -54,40 +52,24 @@ export default function AdminUsersPage() {
     );
   }
 
-  // PROMOTE USER
   async function promoteUser(id: number) {
-    setActionLoading(id);
-
-    const res = await fetch('/api/admin/user-actions/promote', {
+    await fetch('/api/admin/user-actions/promote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     });
 
-    if (!res.ok) {
-      console.error(await res.text());
-    }
-
-    await load();
-    setActionLoading(null);
+    await load(); // force refresh after action
   }
 
-  // DISABLE USER
   async function disableUser(id: number) {
-    setActionLoading(id);
-
-    const res = await fetch('/api/admin/user-actions/disable', {
+    await fetch('/api/admin/user-actions/disable', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     });
 
-    if (!res.ok) {
-      console.error(await res.text());
-    }
-
     await load();
-    setActionLoading(null);
   }
 
   return (
@@ -127,7 +109,6 @@ export default function AdminUsersPage() {
                 <td>
                   <div className="d-flex gap-2">
 
-                    {/* VIEW PROFILE */}
                     <Link
                       href={`/profile/${u.id}`}
                       className="btn btn-sm btn-outline-secondary"
@@ -135,24 +116,22 @@ export default function AdminUsersPage() {
                       View Profile
                     </Link>
 
-                    {/* PROMOTE BUTTON */}
                     <button
                       type="button"
                       className="btn btn-sm btn-primary"
-                      disabled={u.role === 'ADMIN' || actionLoading === u.id}
+                      disabled={u.role === 'ADMIN'}
                       onClick={() => promoteUser(u.id)}
                     >
-                      {actionLoading === u.id ? 'Processing…' : 'Promote'}
+                      Promote to Admin
                     </button>
 
-                    {/* DISABLE BUTTON */}
                     <button
                       type="button"
                       className="btn btn-sm btn-danger"
-                      disabled={u.role === 'ADMIN' || actionLoading === u.id}
+                      disabled={u.role === 'ADMIN'}
                       onClick={() => disableUser(u.id)}
                     >
-                      {actionLoading === u.id ? 'Processing…' : 'Disable'}
+                      Disable User
                     </button>
 
                   </div>
@@ -160,10 +139,8 @@ export default function AdminUsersPage() {
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
-
     </main>
   );
 }
