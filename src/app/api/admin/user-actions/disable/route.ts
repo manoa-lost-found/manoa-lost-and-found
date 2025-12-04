@@ -4,17 +4,13 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: Request) {
   try {
     const { userId } = await req.json();
-
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Missing userId' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
     }
 
     const updated = await prisma.user.update({
       where: { id: Number(userId) },
-      data: { role: 'USER' }, // Prisma enum Role.USER
+      data: { role: 'DISABLED' },
     });
 
     return NextResponse.json({
@@ -22,10 +18,10 @@ export async function POST(req: Request) {
       user: updated,
     });
   } catch (err) {
-    console.error('PROMOTE ERROR FULL:', err);
+    console.error('DISABLE ERROR:', err);
     return NextResponse.json(
       { error: 'Failed to disable user' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
