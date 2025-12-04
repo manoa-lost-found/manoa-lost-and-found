@@ -4,13 +4,12 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 
-// Simple helper to enforce UH emails
+// simple UH email checker
 const isHawaiiEmail = (email: string): boolean => {
   return /^[^@\s]+@hawaii\.edu$/i.test(email.trim());
 };
 
-// Comma-separated list of admin emails in env, e.g.
-// ADMIN_EMAILS="admin1@hawaii.edu,admin2@hawaii.edu"
+// admin whitelist (optional)
 const ADMIN_EMAIL_WHITELIST: string[] = (process.env.ADMIN_EMAILS || '')
   .split(',')
   .map((e) => e.trim().toLowerCase())
@@ -20,112 +19,67 @@ const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
+
   providers: [
-    // Normal user sign-in
+    // Normal login
     CredentialsProvider({
       id: 'credentials',
       name: 'Email and Password',
       credentials: {
-        email: {
-          label: 'Email',
-          type: 'email',
-          placeholder: 'you@hawaii.edu',
-        },
+        email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
+
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials.password) return null;
 
         const email = credentials.email.trim().toLowerCase();
+        if (!isHawaiiEmail(email)) throw new Error('InvalidDomain');
 
-        if (!isHawaiiEmail(email)) {
-          // Block non-UH emails
-          throw new Error('InvalidDomain');
-        }
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
+        const valid = await compare(credentials.password, user.password);
+        if (!valid) return null;
 
-        if (!user) {
-          return null;
-        }
-
-        const isPasswordValid = await compare(
-          credentials.password,
-          user.password,
-        );
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        if (!user.emailVerified) {
-          // NextAuth will surface this error string to the client
-          throw new Error('EmailNotVerified');
-        }
+        if (!user.emailVerified) throw new Error('EmailNotVerified');
 
         return {
           id: `${user.id}`,
           email: user.email,
-          randomKey: user.role,
+          role: user.role,   // <-- FIXED
         };
       },
     }),
 
-    // Admin-only sign-in (whitelist + role check)
+    // Admin login
     CredentialsProvider({
       id: 'admin-credentials',
       name: 'Admin Email and Password',
       credentials: {
-        email: {
-          label: 'Admin Email',
-          type: 'email',
-          placeholder: 'you@hawaii.edu',
-        },
+        email: { label: 'Admin Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
+
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials.password) return null;
 
         const email = credentials.email.trim().toLowerCase();
+        if (!isHawaiiEmail(email)) throw new Error('InvalidDomain');
 
-        if (!isHawaiiEmail(email)) {
-          throw new Error('InvalidDomain');
-        }
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
+        const valid = await compare(credentials.password, user.password);
+        if (!valid) return null;
 
-        if (!user) {
-          return null;
-        }
+        if (!user.emailVerified) throw new Error('EmailNotVerified');
 
-        const isPasswordValid = await compare(
-          credentials.password,
-          user.password,
-        );
-        if (!isPasswordValid) {
-          return null;
-        }
+        if (user.role !== 'ADMIN') throw new Error('NotAdmin');
 
-        if (!user.emailVerified) {
-          throw new Error('EmailNotVerified');
-        }
-
-        // Must be admin role in the DB
-        if (user.role !== 'ADMIN') {
-          throw new Error('NotAdmin');
-        }
-
-        // Must be on the whitelist if one is configured
         if (
-          ADMIN_EMAIL_WHITELIST.length > 0
-          && !ADMIN_EMAIL_WHITELIST.includes(email)
+          ADMIN_EMAIL_WHITELIST.length > 0 &&
+          !ADMIN_EMAIL_WHITELIST.includes(email)
         ) {
           throw new Error('NotWhitelisted');
         }
@@ -133,45 +87,46 @@ const authOptions: NextAuthOptions = {
         return {
           id: `${user.id}`,
           email: user.email,
-          randomKey: user.role,
+          role: user.role,  // <-- FIXED
         };
       },
     }),
   ],
+
   pages: {
     signIn: '/auth/signin',
     signOut: '/auth/signout',
   },
+
   callbacks: {
-    // Extra safety: block non-UH emails
     async signIn({ user }) {
-      if (!user?.email) {
-        return false;
-      }
+      if (!user?.email) return false;
       return isHawaiiEmail(user.email);
     },
-    session: ({ session, token }) => {
+
+    // FIXED SESSION CALLBACK
+    session({ session, token }) {
       return {
         ...session,
         user: {
           ...session.user,
           id: token.id,
-          randomKey: token.randomKey,
+          role: token.role,  // <-- FIXED
         },
       };
     },
-    jwt: ({ token, user }) => {
+
+    // FIXED JWT CALLBACK
+    jwt({ token, user }) {
       if (user) {
         const u = user as any;
-        return {
-          ...token,
-          id: u.id,
-          randomKey: u.randomKey,
-        };
+        token.id = u.id;
+        token.role = u.role; // <-- FIXED
       }
       return token;
     },
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 };
 
