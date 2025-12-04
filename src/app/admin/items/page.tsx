@@ -67,8 +67,10 @@ export default function AdminItemManager() {
     const matchesType = filterType === 'ALL' || i.type === filterType;
     const matchesStatus = filterStatus === 'ALL' || i.status === filterStatus;
     const query = search.toLowerCase();
-    const matchesSearch =
-      i.title.toLowerCase().includes(query) || i.building.toLowerCase().includes(query);
+
+    const matchesSearch = i.title.toLowerCase().includes(query)
+      || i.building.toLowerCase().includes(query);
+
     return matchesType && matchesStatus && matchesSearch;
   });
 
@@ -86,8 +88,10 @@ export default function AdminItemManager() {
     <main className="container py-4">
       <h1 className="fw-bold mb-3">Admin: Manage All Items</h1>
 
+      {/* Filters */}
       <div className="card p-3 mb-4">
         <div className="row g-3">
+
           {/* Search */}
           <div className="col-md-4">
             <label htmlFor="search" className="form-label fw-semibold">
@@ -139,6 +143,7 @@ export default function AdminItemManager() {
               ))}
             </select>
           </div>
+
         </div>
       </div>
 
