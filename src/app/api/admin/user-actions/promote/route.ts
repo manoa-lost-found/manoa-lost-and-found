@@ -16,9 +16,10 @@ export async function POST(req: Request) {
       where: { id: Number(userId) },
       data: { role: 'ADMIN' },
     });
+
     return NextResponse.json({ success: true, user: updated });
   } catch (err) {
-    console.error(err);
+    console.error('PROMOTE ERROR:', err);
     return NextResponse.json(
       { error: 'Failed to promote user' },
       { status: 500 },
