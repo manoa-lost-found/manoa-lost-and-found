@@ -29,7 +29,9 @@ export default function AdminUsersPage() {
   }
 
   useEffect(() => {
-    if (isAdmin) load();
+    if (isAdmin) {
+      load();
+    }
   }, [isAdmin]);
 
   if (!isAdmin) {
@@ -76,6 +78,13 @@ export default function AdminUsersPage() {
     load();
   }
 
+  // Helper to avoid nested ternaries
+  function getRoleBadgeClass(roleValue: string) {
+    if (roleValue === 'ADMIN') return 'badge bg-danger';
+    if (roleValue === 'DISABLED') return 'badge bg-dark';
+    return 'badge bg-secondary';
+  }
+
   return (
     <main className="container py-4">
       <h1 className="fw-bold mb-4">Admin: User Accounts</h1>
@@ -97,24 +106,13 @@ export default function AdminUsersPage() {
                 <td>{u.email}</td>
 
                 <td>
-                  <span
-                    className={
-                      u.role === 'ADMIN'
-                        ? 'badge bg-danger'
-                        : u.role === 'DISABLED'
-                        ? 'badge bg-dark'
-                        : 'badge bg-secondary'
-                    }
-                  >
-                    {u.role}
-                  </span>
+                  <span className={getRoleBadgeClass(u.role)}>{u.role}</span>
                 </td>
 
                 <td>{u.itemCount}</td>
 
                 <td>
                   <div className="d-flex gap-2">
-
                     <Link
                       href={`/profile/${u.id}`}
                       className="btn btn-sm btn-outline-secondary"
@@ -152,7 +150,6 @@ export default function AdminUsersPage() {
                       </button>
                     )}
 
-                    {/* Admin cannot disable themselves */}
                     {u.role === 'ADMIN' && (
                       <span className="text-muted small">Admin locked</span>
                     )}
