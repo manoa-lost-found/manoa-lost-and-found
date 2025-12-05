@@ -7,7 +7,7 @@ import Link from 'next/link';
 type UserRecord = {
   id: number;
   email: string;
-  role: 'ADMIN' | 'USER';
+  role: 'ADMIN' | 'USER' | 'DISABLED';
   itemCount: number;
 };
 
@@ -20,10 +20,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
 
   async function load() {
-    const res = await fetch('/api/admin/users', {
-      cache: 'no-store',
-    });
-
+    const res = await fetch('/api/admin/users');
     if (res.ok) {
       const data = await res.json();
       setUsers(data.users);
@@ -58,8 +55,7 @@ export default function AdminUsersPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     });
-
-    await load(); // force refresh after action
+    load();
   }
 
   async function disableUser(id: number) {
@@ -68,8 +64,16 @@ export default function AdminUsersPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     });
+    load();
+  }
 
-    await load();
+  async function enableUser(id: number) {
+    await fetch('/api/admin/user-actions/enable', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: id }),
+    });
+    load();
   }
 
   return (
@@ -83,7 +87,7 @@ export default function AdminUsersPage() {
               <th>Email</th>
               <th>Role</th>
               <th>Posts</th>
-              <th style={{ width: '250px' }}>Actions</th>
+              <th style={{ width: '300px' }}>Actions</th>
             </tr>
           </thead>
 
@@ -97,6 +101,8 @@ export default function AdminUsersPage() {
                     className={
                       u.role === 'ADMIN'
                         ? 'badge bg-danger'
+                        : u.role === 'DISABLED'
+                        ? 'badge bg-dark'
                         : 'badge bg-secondary'
                     }
                   >
@@ -116,24 +122,40 @@ export default function AdminUsersPage() {
                       View Profile
                     </Link>
 
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-primary"
-                      disabled={u.role === 'ADMIN'}
-                      onClick={() => promoteUser(u.id)}
-                    >
-                      Promote to Admin
-                    </button>
+                    {u.role === 'USER' && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary"
+                          onClick={() => promoteUser(u.id)}
+                        >
+                          Promote
+                        </button>
 
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-danger"
-                      disabled={u.role === 'ADMIN'}
-                      onClick={() => disableUser(u.id)}
-                    >
-                      Disable User
-                    </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-danger"
+                          onClick={() => disableUser(u.id)}
+                        >
+                          Disable
+                        </button>
+                      </>
+                    )}
 
+                    {u.role === 'DISABLED' && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-success"
+                        onClick={() => enableUser(u.id)}
+                      >
+                        Re-Enable
+                      </button>
+                    )}
+
+                    {/* Admin cannot disable themselves */}
+                    {u.role === 'ADMIN' && (
+                      <span className="text-muted small">Admin locked</span>
+                    )}
                   </div>
                 </td>
               </tr>
