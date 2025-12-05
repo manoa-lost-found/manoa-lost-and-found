@@ -45,6 +45,9 @@ export default function SignInPage() {
         setError('Please verify your email before signing in.');
       } else if (res.error === 'InvalidDomain') {
         setError('You must use a @hawaii.edu email address.');
+      } else if (res.error === 'AccountDisabled') {
+        // ⭐ NEW: show message when admin disables their account
+        setError('Your account has been disabled by an administrator.');
       } else {
         setError('Invalid email or password.');
       }
@@ -108,18 +111,13 @@ export default function SignInPage() {
         </button>
 
         <p className="mt-3 mb-0 text-center">
-          Don&apos;t have an account?
-          {' '}
-          <a href="/auth/signup">Sign up</a>
-          .
+          Don&apos;t have an account?{' '}
+          <a href="/auth/signup">Sign up</a>.
         </p>
 
-        {/* 👇 Added this */}
         <p className="mt-2 mb-0 text-center">
-          Admin?
-          {' '}
-          <a href="/auth/admin-signin">Sign in here</a>
-          .
+          Admin?{' '}
+          <a href="/auth/admin-signin">Sign in here</a>.
         </p>
       </form>
     </main>
