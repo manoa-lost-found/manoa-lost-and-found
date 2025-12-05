@@ -5,7 +5,7 @@ export default withAuth(
   function middleware(req) {
     const role = req.nextauth.token?.randomKey;
 
-    // If user is disabled → force logout
+    // Kick disabled users out immediately
     if (role === 'DISABLED') {
       const url = new URL('/auth/signout', req.url);
       return NextResponse.redirect(url);
@@ -16,16 +16,15 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) => {
-        // If no session → unauthorized
         if (!token) return false;
 
-        // Block disabled user immediately
+        // Block disabled users
         if (token.randomKey === 'DISABLED') return false;
 
         return true;
       },
     },
-  }
+  },
 );
 
 export const config = {
