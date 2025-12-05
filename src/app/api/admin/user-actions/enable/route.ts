@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
     const updated = await prisma.user.update({
       where: { id: Number(userId) },
-      data: { role: 'USER' }, // Restore basic user access
+      data: { role: 'USER' }, // Back to normal user
     });
 
     return NextResponse.json({
