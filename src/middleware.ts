@@ -5,10 +5,19 @@ export default withAuth(
   function middleware(req) {
     const role = req.nextauth.token?.randomKey;
 
-    // Kick disabled users out immediately
+    // Force logout instantly if disabled
     if (role === 'DISABLED') {
       const url = new URL('/auth/signout', req.url);
-      return NextResponse.redirect(url);
+
+      const response = NextResponse.redirect(url);
+
+      // Wipe session token instantly
+      response.cookies.set('__Secure-next-auth.session-token', '', {
+        maxAge: 0,
+        path: '/',
+      });
+
+      return response;
     }
 
     return NextResponse.next();
