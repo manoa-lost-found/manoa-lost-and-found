@@ -29,9 +29,7 @@ export default function AdminUsersPage() {
   }
 
   useEffect(() => {
-    if (isAdmin) {
-      load();
-    }
+    if (isAdmin) load();
   }, [isAdmin]);
 
   if (!isAdmin) {
@@ -69,20 +67,13 @@ export default function AdminUsersPage() {
     load();
   }
 
-  async function enableUser(id: number) {
-    await fetch('/api/admin/user-actions/enable', {
+  async function restoreUser(id: number) {
+    await fetch('/api/admin/user-actions/restore', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: id }),
     });
     load();
-  }
-
-  // Helper to avoid nested ternaries
-  function getRoleBadgeClass(roleValue: string) {
-    if (roleValue === 'ADMIN') return 'badge bg-danger';
-    if (roleValue === 'DISABLED') return 'badge bg-dark';
-    return 'badge bg-secondary';
   }
 
   return (
@@ -96,7 +87,7 @@ export default function AdminUsersPage() {
               <th>Email</th>
               <th>Role</th>
               <th>Posts</th>
-              <th style={{ width: '300px' }}>Actions</th>
+              <th style={{ width: '350px' }}>Actions</th>
             </tr>
           </thead>
 
@@ -105,14 +96,27 @@ export default function AdminUsersPage() {
               <tr key={u.id}>
                 <td>{u.email}</td>
 
+                {/* ROLE BADGE */}
                 <td>
-                  <span className={getRoleBadgeClass(u.role)}>{u.role}</span>
+                  <span
+                    className={
+                      u.role === 'ADMIN'
+                        ? 'badge bg-danger'
+                        : u.role === 'DISABLED'
+                          ? 'badge bg-dark'
+                          : 'badge bg-secondary'
+                    }
+                  >
+                    {u.role}
+                  </span>
                 </td>
 
                 <td>{u.itemCount}</td>
 
                 <td>
                   <div className="d-flex gap-2">
+
+                    {/* VIEW PROFILE */}
                     <Link
                       href={`/profile/${u.id}`}
                       className="btn btn-sm btn-outline-secondary"
@@ -120,39 +124,36 @@ export default function AdminUsersPage() {
                       View Profile
                     </Link>
 
-                    {u.role === 'USER' && (
-                      <>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-primary"
-                          onClick={() => promoteUser(u.id)}
-                        >
-                          Promote
-                        </button>
+                    {/* PROMOTE */}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-primary"
+                      disabled={u.role === 'ADMIN'}
+                      onClick={() => promoteUser(u.id)}
+                    >
+                      Promote
+                    </button>
 
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-danger"
-                          onClick={() => disableUser(u.id)}
-                        >
-                          Disable
-                        </button>
-                      </>
-                    )}
+                    {/* DISABLE */}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger"
+                      disabled={u.role === 'DISABLED'}
+                      onClick={() => disableUser(u.id)}
+                    >
+                      Disable
+                    </button>
 
-                    {u.role === 'DISABLED' && (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-success"
-                        onClick={() => enableUser(u.id)}
-                      >
-                        Re-Enable
-                      </button>
-                    )}
+                    {/* RESTORE */}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-success"
+                      disabled={u.role !== 'DISABLED'}
+                      onClick={() => restoreUser(u.id)}
+                    >
+                      Restore
+                    </button>
 
-                    {u.role === 'ADMIN' && (
-                      <span className="text-muted small">Admin locked</span>
-                    )}
                   </div>
                 </td>
               </tr>
