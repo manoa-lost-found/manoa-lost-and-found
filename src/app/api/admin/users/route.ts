@@ -1,43 +1,29 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// 🔥 THIS LINE DISABLES CACHING COMPLETELY
-export const dynamic = 'force-dynamic';
-
+// MUST be a named export for Next.js App Router
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        lostFoundItems: {
-          select: { id: true },
-        },
+      include: {
+        items: true,
       },
     });
 
-    const result = users.map((u) => ({
+    const mapped = users.map((u) => ({
       id: u.id,
+      name: u.name,
       email: u.email,
-      role: u.role,
-      itemCount: u.lostFoundItems.length,
+      role: u.randomKey ?? 'USER',
+      itemCount: u.items.length,
     }));
 
-    return NextResponse.json(
-      { users: result },
-      {
-        headers: {
-          // 🔥 also forces browsers + Next.js to NEVER cache
-          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-        },
-      },
-    );
+    return NextResponse.json({ users: mapped });
   } catch (error) {
-    console.error(error);
+    console.error('Failed to load users', error);
     return NextResponse.json(
       { error: 'Failed to load users' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
