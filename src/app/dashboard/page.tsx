@@ -39,7 +39,7 @@ function StatusBadge({ status }: { status: ItemStatus }) {
 }
 
 /* -----------------------------------------------------
-   Item Card (Lost / Found Posts)
+   Dashboard Card
 ----------------------------------------------------- */
 function DashboardCard({ item }: { item: MyItem }) {
   const dateLabel = new Date(item.date).toLocaleDateString('en-US', {
@@ -51,6 +51,7 @@ function DashboardCard({ item }: { item: MyItem }) {
   return (
     <div className="card border-0 shadow-sm rounded-4 mb-3">
       <div className="row g-0">
+
         {/* Image */}
         <div className="col-md-3">
           <div
@@ -82,14 +83,17 @@ function DashboardCard({ item }: { item: MyItem }) {
         {/* Content */}
         <div className="col-md-9">
           <div className="card-body p-3 p-md-4">
+
             <div className="d-flex justify-content-between align-items-start">
               <div>
                 <h3 className="h6 fw-bold mb-1">{item.title}</h3>
+
                 <p className="small text-muted mb-1">
                   {item.building}
                   <br />
                   {dateLabel}
                 </p>
+
                 <StatusBadge status={item.status} />
               </div>
 
@@ -116,15 +120,16 @@ function DashboardCard({ item }: { item: MyItem }) {
 }
 
 /* -----------------------------------------------------
-   MAIN DASHBOARD PAGE
+   Main Dashboard Page
 ----------------------------------------------------- */
 export default function DashboardPage() {
   const { data: session, status } = useSession();
+
   const [items, setItems] = useState<MyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'lost' | 'found'>('lost');
 
-  /* Fake placeholder data (for UI only) */
+  /* Fake UI Stats (Replace with database data later) */
   const fakeStats = {
     posted: 14,
     reunited: 6,
@@ -132,7 +137,7 @@ export default function DashboardPage() {
     preferredContact: 'Campus Location / Major (optional)',
   };
 
-  /* Load user items */
+  /* Load items */
   useEffect(() => {
     async function load() {
       const res = await fetch('/api/my-items');
@@ -149,7 +154,7 @@ export default function DashboardPage() {
   const lost = items.filter((i) => i.type === 'LOST');
   const found = items.filter((i) => i.type === 'FOUND');
 
-  /* Auth check */
+  /* Redirect if not logged in */
   if (status === 'unauthenticated') {
     if (typeof window !== 'undefined') {
       window.location.href = '/auth/signin';
@@ -157,6 +162,7 @@ export default function DashboardPage() {
     return null;
   }
 
+  /* Loading State */
   if (status === 'loading' || loading) {
     return (
       <main className="container py-5">
@@ -166,7 +172,7 @@ export default function DashboardPage() {
   }
 
   /* -----------------------------------------------------
-     UI Rendering
+     Render UI
   ----------------------------------------------------- */
   return (
     <main
@@ -177,9 +183,11 @@ export default function DashboardPage() {
       }}
     >
       <div className="container" style={{ maxWidth: 900 }}>
+
         {/* -------------------------------- Profile Header -------------------------------- */}
         <div className="d-flex align-items-center gap-4 mb-4">
-          {/* Circle initials */}
+
+          {/* Initials Circle */}
           <div
             style={{
               width: 96,
@@ -197,15 +205,14 @@ export default function DashboardPage() {
             {session?.user?.email?.slice(0, 2).toUpperCase()}
           </div>
 
+          {/* Name & Email */}
           <div>
-            <h1 className="fw-bold mb-1">
-              {session?.user?.name || 'User Name'}
-            </h1>
+            <h1 className="fw-bold mb-1">{session?.user?.name || 'User Name'}</h1>
             <p className="text-muted mb-1">{session?.user?.email}</p>
             <span className="badge bg-secondary">Student</span>
           </div>
 
-          {/* Edit profile button */}
+          {/* Edit Button */}
           <div className="ms-auto">
             <Link href="/profile/edit" className="btn btn-success">
               Edit Profile
@@ -213,7 +220,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* -------------------------------- Stats Cards -------------------------------- */}
+        {/* -------------------------------- Stats -------------------------------- */}
         <div className="row mb-4">
           <div className="col-md-4">
             <div className="p-3 rounded-4 shadow-sm bg-white text-center">
@@ -237,7 +244,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* -------------------------------- Personal Information -------------------------------- */}
+        {/* -------------------------------- Personal Info -------------------------------- */}
         <div className="rounded-4 shadow-sm bg-white p-4 mb-4">
           <h2 className="h5 fw-bold mb-3">Personal Information</h2>
 
@@ -254,12 +261,7 @@ export default function DashboardPage() {
 
             <div className="col-12">
               <label className="small text-muted">Preferred Contact</label>
-              <input
-                type="text"
-                className="form-control"
-                disabled
-                value={fakeStats.preferredContact}
-              />
+              <input type="text" className="form-control" disabled value={fakeStats.preferredContact} />
             </div>
           </div>
         </div>
@@ -270,12 +272,15 @@ export default function DashboardPage() {
 
           <div className="d-flex gap-3 mb-3">
             <button
+              type="button"
               onClick={() => setTab('lost')}
               className={`btn btn-sm ${tab === 'lost' ? 'btn-dark' : 'btn-outline-secondary'}`}
             >
               Lost Reports
             </button>
+
             <button
+              type="button"
               onClick={() => setTab('found')}
               className={`btn btn-sm ${tab === 'found' ? 'btn-dark' : 'btn-outline-secondary'}`}
             >
@@ -286,12 +291,14 @@ export default function DashboardPage() {
           {tab === 'lost' &&
             (lost.length === 0
               ? <p className="text-muted">No lost reports yet.</p>
-              : lost.map((item) => <DashboardCard key={item.id} item={item} />))}
+              : lost.map((item) => <DashboardCard key={item.id} item={item} />)
+            )}
 
           {tab === 'found' &&
             (found.length === 0
               ? <p className="text-muted">No found reports yet.</p>
-              : found.map((item) => <DashboardCard key={item.id} item={item} />))}
+              : found.map((item) => <DashboardCard key={item.id} item={item} />)
+            )}
         </div>
 
         {/* -------------------------------- Notifications -------------------------------- */}
