@@ -5,6 +5,9 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+/* -----------------------------------------------------
+   Types
+----------------------------------------------------- */
 type ItemType = 'LOST' | 'FOUND';
 type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
 
@@ -21,6 +24,9 @@ type MyItem = {
   locationName?: string | null;
 };
 
+/* -----------------------------------------------------
+   Status Badge
+----------------------------------------------------- */
 function StatusBadge({ status }: { status: ItemStatus }) {
   const colors: Record<ItemStatus, string> = {
     OPEN: 'badge bg-success',
@@ -32,6 +38,9 @@ function StatusBadge({ status }: { status: ItemStatus }) {
   return <span className={colors[status]}>{status.replace(/_/g, ' ')}</span>;
 }
 
+/* -----------------------------------------------------
+   Item Card (Lost / Found Posts)
+----------------------------------------------------- */
 function DashboardCard({ item }: { item: MyItem }) {
   const dateLabel = new Date(item.date).toLocaleDateString('en-US', {
     month: 'short',
@@ -42,6 +51,7 @@ function DashboardCard({ item }: { item: MyItem }) {
   return (
     <div className="card border-0 shadow-sm rounded-4 mb-3">
       <div className="row g-0">
+        {/* Image */}
         <div className="col-md-3">
           <div
             style={{
@@ -69,18 +79,17 @@ function DashboardCard({ item }: { item: MyItem }) {
           </div>
         </div>
 
+        {/* Content */}
         <div className="col-md-9">
           <div className="card-body p-3 p-md-4">
             <div className="d-flex justify-content-between align-items-start">
               <div>
                 <h3 className="h6 fw-bold mb-1">{item.title}</h3>
-
                 <p className="small text-muted mb-1">
                   {item.building}
                   <br />
                   {dateLabel}
                 </p>
-
                 <StatusBadge status={item.status} />
               </div>
 
@@ -96,9 +105,7 @@ function DashboardCard({ item }: { item: MyItem }) {
 
             {item.locationName && (
               <p className="small text-muted mt-2">
-                Pickup Location:
-                {' '}
-                {item.locationName}
+                Pickup Location: {item.locationName}
               </p>
             )}
           </div>
@@ -108,11 +115,24 @@ function DashboardCard({ item }: { item: MyItem }) {
   );
 }
 
+/* -----------------------------------------------------
+   MAIN DASHBOARD PAGE
+----------------------------------------------------- */
 export default function DashboardPage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [items, setItems] = useState<MyItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'lost' | 'found'>('lost');
 
+  /* Fake placeholder data (for UI only) */
+  const fakeStats = {
+    posted: 14,
+    reunited: 6,
+    pending: 2,
+    preferredContact: 'Campus Location / Major (optional)',
+  };
+
+  /* Load user items */
   useEffect(() => {
     async function load() {
       const res = await fetch('/api/my-items');
@@ -123,14 +143,13 @@ export default function DashboardPage() {
       setLoading(false);
     }
 
-    if (status === 'authenticated') {
-      load();
-    }
+    if (status === 'authenticated') load();
   }, [status]);
 
   const lost = items.filter((i) => i.type === 'LOST');
   const found = items.filter((i) => i.type === 'FOUND');
 
+  /* Auth check */
   if (status === 'unauthenticated') {
     if (typeof window !== 'undefined') {
       window.location.href = '/auth/signin';
@@ -141,41 +160,169 @@ export default function DashboardPage() {
   if (status === 'loading' || loading) {
     return (
       <main className="container py-5">
-        <p>Loading your dashboard&hellip;</p>
+        <p>Loading your dashboard…</p>
       </main>
     );
   }
 
+  /* -----------------------------------------------------
+     UI Rendering
+  ----------------------------------------------------- */
   return (
     <main
       style={{
         background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
         minHeight: 'calc(100vh - 64px)',
-        padding: '3rem 0',
+        padding: '2.5rem 0',
       }}
     >
-      <div className="container" style={{ maxWidth: 850 }}>
-        <h1 className="fw-bold mb-4 text-center">My Dashboard</h1>
+      <div className="container" style={{ maxWidth: 900 }}>
+        {/* -------------------------------- Profile Header -------------------------------- */}
+        <div className="d-flex align-items-center gap-4 mb-4">
+          {/* Circle initials */}
+          <div
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: '50%',
+              background: '#1f6f4a',
+              color: 'white',
+              fontSize: 32,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              fontWeight: 'bold',
+            }}
+          >
+            {session?.user?.email?.slice(0, 2).toUpperCase()}
+          </div>
 
-        <section className="mb-5">
-          <h2 className="h5 fw-bold mb-3">My Lost Items</h2>
+          <div>
+            <h1 className="fw-bold mb-1">
+              {session?.user?.name || 'User Name'}
+            </h1>
+            <p className="text-muted mb-1">{session?.user?.email}</p>
+            <span className="badge bg-secondary">Student</span>
+          </div>
 
-          {lost.length === 0 ? (
-            <p className="text-muted">You haven&rsquo;t reported any lost items yet.</p>
-          ) : (
-            lost.map((item) => <DashboardCard key={item.id} item={item} />)
-          )}
-        </section>
+          {/* Edit profile button */}
+          <div className="ms-auto">
+            <Link href="/profile/edit" className="btn btn-success">
+              Edit Profile
+            </Link>
+          </div>
+        </div>
 
-        <section>
-          <h2 className="h5 fw-bold mb-3">My Found Items</h2>
+        {/* -------------------------------- Stats Cards -------------------------------- */}
+        <div className="row mb-4">
+          <div className="col-md-4">
+            <div className="p-3 rounded-4 shadow-sm bg-white text-center">
+              <h3 className="fw-bold mb-1">{fakeStats.posted}</h3>
+              <p className="text-muted small mb-0">Items Posted</p>
+            </div>
+          </div>
 
-          {found.length === 0 ? (
-            <p className="text-muted">You haven&rsquo;t reported any found items yet.</p>
-          ) : (
-            found.map((item) => <DashboardCard key={item.id} item={item} />)
-          )}
-        </section>
+          <div className="col-md-4">
+            <div className="p-3 rounded-4 shadow-sm bg-white text-center">
+              <h3 className="fw-bold mb-1">{fakeStats.reunited}</h3>
+              <p className="text-muted small mb-0">Items Reunited</p>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div className="p-3 rounded-4 shadow-sm bg-white text-center">
+              <h3 className="fw-bold mb-1">{fakeStats.pending}</h3>
+              <p className="text-muted small mb-0">Reports Pending</p>
+            </div>
+          </div>
+        </div>
+
+        {/* -------------------------------- Personal Information -------------------------------- */}
+        <div className="rounded-4 shadow-sm bg-white p-4 mb-4">
+          <h2 className="h5 fw-bold mb-3">Personal Information</h2>
+
+          <div className="row g-3">
+            <div className="col-md-6">
+              <label className="small text-muted">Full Name</label>
+              <input type="text" className="form-control" disabled value={session?.user?.name || ''} />
+            </div>
+
+            <div className="col-md-6">
+              <label className="small text-muted">UH Email</label>
+              <input type="text" className="form-control" disabled value={session?.user?.email || ''} />
+            </div>
+
+            <div className="col-12">
+              <label className="small text-muted">Preferred Contact</label>
+              <input
+                type="text"
+                className="form-control"
+                disabled
+                value={fakeStats.preferredContact}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* -------------------------------- Active Posts Tabs -------------------------------- */}
+        <div className="rounded-4 shadow-sm bg-white p-4 mb-4">
+          <h2 className="h5 fw-bold mb-3">Your Active Posts</h2>
+
+          <div className="d-flex gap-3 mb-3">
+            <button
+              onClick={() => setTab('lost')}
+              className={`btn btn-sm ${tab === 'lost' ? 'btn-dark' : 'btn-outline-secondary'}`}
+            >
+              Lost Reports
+            </button>
+            <button
+              onClick={() => setTab('found')}
+              className={`btn btn-sm ${tab === 'found' ? 'btn-dark' : 'btn-outline-secondary'}`}
+            >
+              Found Reports
+            </button>
+          </div>
+
+          {tab === 'lost' &&
+            (lost.length === 0
+              ? <p className="text-muted">No lost reports yet.</p>
+              : lost.map((item) => <DashboardCard key={item.id} item={item} />))}
+
+          {tab === 'found' &&
+            (found.length === 0
+              ? <p className="text-muted">No found reports yet.</p>
+              : found.map((item) => <DashboardCard key={item.id} item={item} />))}
+        </div>
+
+        {/* -------------------------------- Notifications -------------------------------- */}
+        <div className="rounded-4 shadow-sm bg-white p-4 mb-4">
+          <h2 className="h5 fw-bold mb-3">Notifications & Preferences</h2>
+
+          <ul className="list-unstyled mb-0">
+            <li>Email me when someone messages about my item</li>
+            <li>Auto-archive reports after 30 days</li>
+            <li>Show my name on item listings</li>
+          </ul>
+        </div>
+
+        {/* -------------------------------- Account Actions -------------------------------- */}
+        <div className="rounded-4 shadow-sm bg-white p-4 mb-5">
+          <h2 className="h5 fw-bold mb-3">Account Actions</h2>
+
+          <div className="d-flex justify-content-between">
+            <Link href="/profile/change-password" className="text-primary fw-semibold">
+              Change Password
+            </Link>
+
+            <Link href="/profile/download-data" className="text-primary fw-semibold">
+              Download My Data
+            </Link>
+
+            <Link href="/profile/delete-account" className="text-danger fw-semibold">
+              Delete Account
+            </Link>
+          </div>
+        </div>
       </div>
     </main>
   );
