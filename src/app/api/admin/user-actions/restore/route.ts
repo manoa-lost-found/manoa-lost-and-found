@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json(
         { error: 'Missing userId' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     console.error('RESTORE ERROR:', err);
     return NextResponse.json(
       { error: 'Failed to restore user' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
