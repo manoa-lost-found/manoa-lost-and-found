@@ -49,10 +49,10 @@ export default function AdminUsersPage() {
     );
   }
 
-  // 🔥 FIXED: No more nested ternary
-  function getRoleBadgeClass(role: string) {
-    if (role === 'ADMIN') return 'badge bg-danger';
-    if (role === 'DISABLED') return 'badge bg-dark';
+  // 👇 FIXED (renamed role → userRole)
+  function getRoleBadgeClass(userRole: string) {
+    if (userRole === 'ADMIN') return 'badge bg-danger';
+    if (userRole === 'DISABLED') return 'badge bg-dark';
     return 'badge bg-secondary';
   }
 
@@ -146,6 +146,7 @@ export default function AdminUsersPage() {
                     >
                       Restore
                     </button>
+
                   </div>
                 </td>
               </tr>
