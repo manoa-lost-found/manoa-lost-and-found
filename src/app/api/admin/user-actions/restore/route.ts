@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Restore: sets role back to USER
 export async function POST(req: Request) {
   try {
     const { userId } = await req.json();
@@ -8,13 +9,13 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json(
         { error: 'Missing userId' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const updated = await prisma.user.update({
       where: { id: Number(userId) },
-      data: { role: 'USER' }, // Back to normal user
+      data: { role: 'USER' }, // restore access
     });
 
     return NextResponse.json({
@@ -22,10 +23,10 @@ export async function POST(req: Request) {
       user: updated,
     });
   } catch (err) {
-    console.error('ENABLE ERROR:', err);
+    console.error('RESTORE ERROR:', err);
     return NextResponse.json(
-      { error: 'Failed to enable user' },
-      { status: 500 },
+      { error: 'Failed to restore user' },
+      { status: 500 }
     );
   }
 }
