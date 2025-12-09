@@ -13,17 +13,17 @@ export async function GET() {
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Not authenticated' },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
-    // We store id on the JWT, but NextAuth's type doesn't know that.
+    // Our JWT includes numeric userId (not typed by NextAuth)
     const userId = Number((session.user as any).id);
 
     if (!userId || Number.isNaN(userId)) {
       return NextResponse.json(
-        { error: 'Invalid user id in session' },
-        { status: 401 },
+        { error: 'Invalid user ID in session' },
+        { status: 401 }
       );
     }
 
@@ -32,11 +32,11 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
 
-    const formatted = items.map((item) => ({
+    const formattedItems = items.map((item) => ({
       id: item.id,
       title: item.title,
       description: item.description,
-      type: item.type,
+      type: item.type, // LOST / FOUND
       status: item.status,
       category: item.category,
       building: item.building,
@@ -46,12 +46,13 @@ export async function GET() {
       locationName: item.locationName,
     }));
 
-    return NextResponse.json({ items: formatted }, { status: 200 });
-  } catch (err) {
-    console.error(err);
+    return NextResponse.json({ items: formattedItems }, { status: 200 });
+
+  } catch (error) {
+    console.error('Error loading my-items:', error);
     return NextResponse.json(
       { error: 'Failed to load dashboard items' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
