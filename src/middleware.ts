@@ -6,18 +6,18 @@ export default withAuth(
   function middleware(req) {
     const role = req.nextauth.token?.randomKey;
 
-    // Auto-logout disabled users
+    // Auto-logout if DISABLED
     if (role === 'DISABLED') {
       const url = new URL('/auth/signout', req.url);
-      const response = NextResponse.redirect(url);
+      const res = NextResponse.redirect(url);
 
-      // Kill session instantly
-      response.cookies.set('__Secure-next-auth.session-token', '', {
+      // clear session token immediately
+      res.cookies.set('__Secure-next-auth.session-token', '', {
         maxAge: 0,
         path: '/',
       });
 
-      return response;
+      return res;
     }
 
     return NextResponse.next();
@@ -27,7 +27,7 @@ export default withAuth(
       authorized: ({ token }) => {
         if (!token) return false;
 
-        // Block disabled users
+        // Block DISABLED users from accessing pages
         if (token.randomKey === 'DISABLED') return false;
 
         return true;
@@ -36,9 +36,15 @@ export default withAuth(
   },
 );
 
-// ❗ IMPORTANT: Exclude ALL API ROUTES
+// IMPORTANT — DO NOT run middleware on ANY API routes or admin actions
 export const config = {
   matcher: [
-    '/((?!api|auth|_next/static|_next/image|favicon.ico).*)',
+    // Skip middleware for:
+    // /api/*
+    // /auth/*
+    // /admin/user-actions/*
+    // /_next/*
+    // /favicon.ico
+    '/((?!api|auth|admin/user-actions|_next|favicon.ico).*)',
   ],
 };
