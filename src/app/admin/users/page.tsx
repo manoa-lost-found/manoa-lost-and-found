@@ -49,6 +49,13 @@ export default function AdminUsersPage() {
     );
   }
 
+  // 🔥 FIXED: No more nested ternary
+  function getRoleBadgeClass(role: string) {
+    if (role === 'ADMIN') return 'badge bg-danger';
+    if (role === 'DISABLED') return 'badge bg-dark';
+    return 'badge bg-secondary';
+  }
+
   async function promoteUser(id: number) {
     await fetch('/api/admin/user-actions/promote', {
       method: 'POST',
@@ -96,17 +103,8 @@ export default function AdminUsersPage() {
               <tr key={u.id}>
                 <td>{u.email}</td>
 
-                {/* ROLE BADGE */}
                 <td>
-                  <span
-                    className={
-                      u.role === 'ADMIN'
-                        ? 'badge bg-danger'
-                        : u.role === 'DISABLED'
-                          ? 'badge bg-dark'
-                          : 'badge bg-secondary'
-                    }
-                  >
+                  <span className={getRoleBadgeClass(u.role)}>
                     {u.role}
                   </span>
                 </td>
@@ -115,8 +113,6 @@ export default function AdminUsersPage() {
 
                 <td>
                   <div className="d-flex gap-2">
-
-                    {/* VIEW PROFILE */}
                     <Link
                       href={`/profile/${u.id}`}
                       className="btn btn-sm btn-outline-secondary"
@@ -124,7 +120,6 @@ export default function AdminUsersPage() {
                       View Profile
                     </Link>
 
-                    {/* PROMOTE */}
                     <button
                       type="button"
                       className="btn btn-sm btn-primary"
@@ -134,7 +129,6 @@ export default function AdminUsersPage() {
                       Promote
                     </button>
 
-                    {/* DISABLE */}
                     <button
                       type="button"
                       className="btn btn-sm btn-danger"
@@ -144,7 +138,6 @@ export default function AdminUsersPage() {
                       Disable
                     </button>
 
-                    {/* RESTORE */}
                     <button
                       type="button"
                       className="btn btn-sm btn-success"
@@ -153,7 +146,6 @@ export default function AdminUsersPage() {
                     >
                       Restore
                     </button>
-
                   </div>
                 </td>
               </tr>
