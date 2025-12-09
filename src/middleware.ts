@@ -1,3 +1,4 @@
+// src/middleware.ts
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 
@@ -5,13 +6,12 @@ export default withAuth(
   function middleware(req) {
     const role = req.nextauth.token?.randomKey;
 
-    // Force logout instantly if disabled
+    // Auto-logout disabled users
     if (role === 'DISABLED') {
       const url = new URL('/auth/signout', req.url);
-
       const response = NextResponse.redirect(url);
 
-      // Wipe session token instantly
+      // Kill session instantly
       response.cookies.set('__Secure-next-auth.session-token', '', {
         maxAge: 0,
         path: '/',
@@ -36,6 +36,9 @@ export default withAuth(
   },
 );
 
+// ❗ IMPORTANT: Exclude ALL API ROUTES
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/((?!api|auth|_next/static|_next/image|favicon.ico).*)',
+  ],
 };
