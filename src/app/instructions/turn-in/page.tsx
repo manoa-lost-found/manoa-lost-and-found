@@ -7,6 +7,7 @@ export default function TurnInInstructionsPage() {
     <main className="landing-main">
       <Container>
         <Row className="g-4">
+
           {/* LEFT COLUMN - Instructions */}
           <Col lg={6}>
             <Card className="landing-card h-100 rounded-4">
@@ -103,6 +104,7 @@ export default function TurnInInstructionsPage() {
                 </p>
 
                 <div className="d-flex flex-column align-items-center">
+
                   {/* Campus Center */}
                   <Card className="landing-card-sm mb-3" style={{ width: '100%' }}>
                     <Card.Body className="text-center p-3">
@@ -116,7 +118,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-8178
                       </p>
                       <a
-                        href="https://manoa.hawaii.edu/campuscenter/"
+                        href="https://map.hawaii.edu/manoa/?bld=CC"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -139,7 +141,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-7204
                       </p>
                       <a
-                        href="https://manoa.hawaii.edu/library/"
+                        href="https://map.hawaii.edu/manoa/?bld=HL"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -162,7 +164,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-2586
                       </p>
                       <a
-                        href="https://manoa.hawaii.edu/library/sinclair/"
+                        href="https://map.hawaii.edu/manoa/?bld=SINCLAIR"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -185,7 +187,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-4642
                       </p>
                       <a
-                        href="https://manoa.hawaii.edu/studentlife/"
+                        href="https://map.hawaii.edu/manoa/?bld=HEM"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -208,7 +210,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-7480
                       </p>
                       <a
-                        href="https://manoa.hawaii.edu/chem/"
+                        href="https://map.hawaii.edu/manoa/?bld=BIL"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -231,7 +233,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-8251
                       </p>
                       <a
-                        href="https://hawaii.edu/art/"
+                        href="https://map.hawaii.edu/manoa/?bld=ART"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -240,10 +242,12 @@ export default function TurnInInstructionsPage() {
                       </a>
                     </Card.Body>
                   </Card>
+
                 </div>
               </Card.Body>
             </Card>
           </Col>
+
         </Row>
       </Container>
     </main>
