@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     console.error('DISABLE ERROR:', err);
     return NextResponse.json(
       { error: 'Failed to disable user' },
-      { status: 500 }, // <-- REQUIRED TRAILING COMMA
+      { status: 500 },
     );
   }
 }
