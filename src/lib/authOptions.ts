@@ -1,5 +1,4 @@
 /* eslint-disable arrow-body-style */
-/* eslint-disable no-param-reassign */   // <-- FIXES eslint errors
 import { compare } from 'bcrypt';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -11,9 +10,7 @@ const isHawaiiEmail = (email: string): boolean => {
 };
 
 const authOptions: NextAuthOptions = {
-  session: {
-    strategy: 'jwt',
-  },
+  session: { strategy: 'jwt' },
 
   providers: [
     /* ------------------------------------------------------------
@@ -32,29 +29,19 @@ const authOptions: NextAuthOptions = {
 
         const email = credentials.email.trim().toLowerCase();
 
-        if (!isHawaiiEmail(email)) {
-          throw new Error('InvalidDomain');
-        }
+        if (!isHawaiiEmail(email)) throw new Error('InvalidDomain');
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
-
+        const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return null;
 
         const isPasswordValid = await compare(credentials.password, user.password);
         if (!isPasswordValid) return null;
 
-        if (!user.emailVerified) {
-          throw new Error('EmailNotVerified');
-        }
-
-        if (user.role === 'DISABLED') {
-          throw new Error('AccountDisabled');
-        }
+        if (!user.emailVerified) throw new Error('EmailNotVerified');
+        if (user.role === 'DISABLED') throw new Error('AccountDisabled');
 
         return {
-          id: `${user.id}`,
+          id: String(user.id),
           email: user.email,
           role: user.role,
         };
@@ -66,9 +53,9 @@ const authOptions: NextAuthOptions = {
     ------------------------------------------------------------ */
     CredentialsProvider({
       id: 'admin-credentials',
-      name: 'Admin Login',
+      name: 'Admin Only Login',
       credentials: {
-        email: { label: 'Admin Email', type: 'email' },
+        email: { label: 'Admin Email', type: 'email', placeholder: 'you@hawaii.edu' },
         password: { label: 'Password', type: 'password' },
       },
 
@@ -76,30 +63,19 @@ const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials.password) return null;
 
         const email = credentials.email.trim().toLowerCase();
+        if (!isHawaiiEmail(email)) throw new Error('InvalidDomain');
 
-        if (!isHawaiiEmail(email)) {
-          throw new Error('InvalidDomain');
-        }
-
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
-
+        const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return null;
 
         const isPasswordValid = await compare(credentials.password, user.password);
         if (!isPasswordValid) return null;
 
-        if (!user.emailVerified) {
-          throw new Error('EmailNotVerified');
-        }
-
-        if (user.role !== 'ADMIN') {
-          throw new Error('NotAdmin');
-        }
+        if (!user.emailVerified) throw new Error('EmailNotVerified');
+        if (user.role !== 'ADMIN') throw new Error('NotAdmin');
 
         return {
-          id: `${user.id}`,
+          id: String(user.id),
           email: user.email,
           role: user.role,
         };
@@ -114,33 +90,45 @@ const authOptions: NextAuthOptions = {
 
   callbacks: {
     /* ---------------------------------------
-       SIGN-IN VALIDATION
+       SIGN-IN CHECK
     --------------------------------------- */
-    signIn({ user }) {
-      return !!user?.email;
+    async signIn({ user }) {
+      if (!user?.email) return false;
+      return true;
     },
 
     /* ---------------------------------------
-       JWT — store ID & role
+       SESSION CALLBACK (NO MUTATION)
+    --------------------------------------- */
+    session: ({ session, token }) => {
+      const safeSession = {
+        ...session,
+        user: session.user
+          ? {
+              ...session.user,
+              id: token?.id,
+              role: token?.role,
+            }
+          : undefined,
+      };
+
+      return safeSession;
+    },
+
+    /* ---------------------------------------
+       JWT CALLBACK (NO MUTATION)
     --------------------------------------- */
     jwt: ({ token, user }) => {
       if (user) {
-        token.id = (user as any).id;
-        token.role = (user as any).role;
+        const safeToken = {
+          ...token,
+          id: (user as any).id,
+          role: (user as any).role,
+        };
+        return safeToken;
       }
-      return token;
-    },
 
-    /* ---------------------------------------
-       SESSION — expose ID & role
-    --------------------------------------- */
-    session: ({ session, token }) => {
-      session.user = {
-        ...session.user,
-        id: token.id as string,
-        role: token.role as string,
-      };
-      return session;
+      return token;
     },
   },
 
