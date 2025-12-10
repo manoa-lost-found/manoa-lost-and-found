@@ -1,4 +1,5 @@
 /* eslint-disable arrow-body-style */
+/* eslint-disable no-param-reassign */   // <-- FIXES eslint errors
 import { compare } from 'bcrypt';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -15,6 +16,9 @@ const authOptions: NextAuthOptions = {
   },
 
   providers: [
+    /* ------------------------------------------------------------
+       NORMAL LOGIN
+    ------------------------------------------------------------ */
     CredentialsProvider({
       id: 'credentials',
       name: 'Email and Password',
@@ -57,6 +61,9 @@ const authOptions: NextAuthOptions = {
       },
     }),
 
+    /* ------------------------------------------------------------
+       ADMIN LOGIN
+    ------------------------------------------------------------ */
     CredentialsProvider({
       id: 'admin-credentials',
       name: 'Admin Login',
@@ -100,19 +107,33 @@ const authOptions: NextAuthOptions = {
     }),
   ],
 
+  pages: {
+    signIn: '/auth/signin',
+    signOut: '/auth/signout',
+  },
+
   callbacks: {
+    /* ---------------------------------------
+       SIGN-IN VALIDATION
+    --------------------------------------- */
     signIn({ user }) {
       return !!user?.email;
     },
 
+    /* ---------------------------------------
+       JWT — store ID & role
+    --------------------------------------- */
     jwt: ({ token, user }) => {
       if (user) {
-        token.id = user.id;
+        token.id = (user as any).id;
         token.role = (user as any).role;
       }
       return token;
     },
 
+    /* ---------------------------------------
+       SESSION — expose ID & role
+    --------------------------------------- */
     session: ({ session, token }) => {
       session.user = {
         ...session.user,
