@@ -29,29 +29,31 @@ export default function AdminSignInPage() {
       redirect: false,
       email,
       password,
-      callbackUrl: '/admin', // change later if you want
+      callbackUrl: '/admin',
     });
 
     setSubmitting(false);
 
+    // SignIn failed entirely
     if (!res) {
       setError('Unexpected error during sign in.');
       return;
     }
 
+    // Backend error from authorize()
     if (res.error) {
-      if (res.error === 'EmailNotVerified') {
-        setError('Please verify your email before signing in as an admin.');
-      } else if (res.error === 'InvalidDomain') {
-        setError('You must use a @hawaii.edu email address.');
-      } else if (res.error === 'NotAdmin') {
-        setError('This account is not an admin account.');
-      } else if (res.error === 'NotWhitelisted') {
-        setError(
-          'This admin account is not allowed to sign in on this site.',
-        );
-      } else {
-        setError('Invalid admin credentials.');
+      switch (res.error) {
+        case 'InvalidDomain':
+          setError('You must use a @hawaii.edu email address.');
+          break;
+        case 'EmailNotVerified':
+          setError('Please verify your email before signing in as an admin.');
+          break;
+        case 'NotAdmin':
+          setError('This account is not an admin account.');
+          break;
+        default:
+          setError('Invalid admin credentials.');
       }
       return;
     }
@@ -114,10 +116,8 @@ export default function AdminSignInPage() {
         </button>
 
         <p className="mt-3 mb-0 text-center">
-          Not an admin?
-          {' '}
-          <a href="/auth/signin">Go to user sign in</a>
-          .
+          Not an admin?{' '}
+          <a href="/auth/signin">Go to user sign in</a>.
         </p>
       </form>
     </main>
