@@ -1,12 +1,10 @@
-// src/middleware.ts
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 
 export default withAuth(
   function middleware(req) {
-    const role = req.nextauth.token?.randomKey;
+    const role = req.nextauth.token?.role;
 
-    // If account is disabled → force logout
     if (role === 'DISABLED') {
       const url = new URL('/auth/signout', req.url);
       const res = NextResponse.redirect(url);
@@ -24,24 +22,18 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) => {
-        // No session? Not authorized.
         if (!token) return false;
 
-        // DISABLED users are not authorized
-        if (token.randomKey === 'DISABLED') return false;
+        if (token.role === 'DISABLED') return false;
 
         return true;
       },
     },
-  },
+  }
 );
 
-// THIS is the correct safe matcher.
-// It ONLY protects /dashboard and /admin sections.
-// It does NOT interfere with home, FAQ, images, API, auth, etc.
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/admin/:path*',
+    '/((?!api|auth|admin/user-actions|_next|favicon.ico).*)',
   ],
 };
