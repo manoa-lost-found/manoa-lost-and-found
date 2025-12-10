@@ -35,25 +35,36 @@ export default function SignInPage() {
 
     setSubmitting(false);
 
+    // No response (rare)
     if (!res) {
       setError('Unexpected error during sign in.');
       return;
     }
 
+    // Backend errors from authorize()
     if (res.error) {
-      if (res.error === 'EmailNotVerified') {
-        setError('Please verify your email before signing in.');
-      } else if (res.error === 'InvalidDomain') {
-        setError('You must use a @hawaii.edu email address.');
-      } else if (res.error === 'AccountDisabled') {
-        // ⭐ NEW: show message when admin disables their account
-        setError('Your account has been disabled by an administrator.');
-      } else {
-        setError('Invalid email or password.');
+      switch (res.error) {
+        case 'InvalidDomain':
+          setError('You must use a @hawaii.edu email address.');
+          break;
+
+        case 'EmailNotVerified':
+          setError('Please verify your email before signing in.');
+          break;
+
+        case 'AccountDisabled':
+          setError('Your account has been disabled by an administrator.');
+          break;
+
+        default:
+          // invalid password OR non-existent account
+          setError('Invalid email or password.');
+          break;
       }
       return;
     }
 
+    // Success
     router.push(res.url ?? '/');
   };
 
