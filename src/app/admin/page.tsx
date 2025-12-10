@@ -4,9 +4,17 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
 export default function AdminPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
-  // FIX: role now comes from session.user.role (NOT randomKey)
+  // When session is loading, show something neutral
+  if (status === 'loading') {
+    return (
+      <main className="container py-5">
+        <p>Checking your admin access…</p>
+      </main>
+    );
+  }
+
   const role = (session?.user as any)?.role;
   const isAdmin = role === 'ADMIN';
 
