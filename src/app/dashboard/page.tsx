@@ -120,7 +120,7 @@ function DashboardCard({ item }: { item: MyItem }) {
 }
 
 /* -----------------------------------------------------
-   Main Dashboard Page
+   Main Dashboard
 ----------------------------------------------------- */
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -129,15 +129,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'lost' | 'found'>('lost');
 
-  /* Fake UI Stats (Replace with database data later) */
+  /* Fake Stats (UI only) */
   const fakeStats = {
     posted: 14,
     reunited: 6,
     pending: 2,
-    preferredContact: 'Campus Location / Major (optional)',
   };
 
-  /* Load items */
+  /* Load user items */
   useEffect(() => {
     async function load() {
       const res = await fetch('/api/my-items');
@@ -154,7 +153,7 @@ export default function DashboardPage() {
   const lost = items.filter((i) => i.type === 'LOST');
   const found = items.filter((i) => i.type === 'FOUND');
 
-  /* Redirect if not logged in */
+  /* Auth redirect */
   if (status === 'unauthenticated') {
     if (typeof window !== 'undefined') {
       window.location.href = '/auth/signin';
@@ -162,7 +161,6 @@ export default function DashboardPage() {
     return null;
   }
 
-  /* Loading State */
   if (status === 'loading' || loading) {
     return (
       <main className="container py-5">
@@ -171,9 +169,6 @@ export default function DashboardPage() {
     );
   }
 
-  /* -----------------------------------------------------
-     Render UI
-  ----------------------------------------------------- */
   return (
     <main
       style={{
@@ -186,8 +181,7 @@ export default function DashboardPage() {
 
         {/* -------------------------------- Profile Header -------------------------------- */}
         <div className="d-flex align-items-center gap-4 mb-4">
-
-          {/* Initials Circle */}
+          {/* Initials */}
           <div
             style={{
               width: 96,
@@ -205,18 +199,31 @@ export default function DashboardPage() {
             {session?.user?.email?.slice(0, 2).toUpperCase()}
           </div>
 
-          {/* Name & Email */}
           <div>
-            <h1 className="fw-bold mb-1">{session?.user?.name || 'User Name'}</h1>
+            <h1 className="fw-bold mb-1">My Profile</h1>
             <p className="text-muted mb-1">{session?.user?.email}</p>
             <span className="badge bg-secondary">Student</span>
           </div>
+        </div>
 
-          {/* Edit Button */}
-          <div className="ms-auto">
-            <Link href="/profile/edit" className="btn btn-success">
-              Edit Profile
-            </Link>
+        {/* -------------------------------- Account Information -------------------------------- */}
+        <div className="rounded-4 shadow-sm bg-white p-4 mb-4">
+          <h2 className="h5 fw-bold mb-3">Account Information</h2>
+
+          <div className="row g-3">
+            <div className="col-12">
+              <label className="small text-muted">UH Email</label>
+              <input
+                type="text"
+                className="form-control"
+                disabled
+                value={session?.user?.email || ''}
+              />
+            </div>
+
+            <p className="mt-2 text-muted small">
+              Additional profile fields will be available in future updates.
+            </p>
           </div>
         </div>
 
@@ -244,29 +251,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* -------------------------------- Personal Info -------------------------------- */}
-        <div className="rounded-4 shadow-sm bg-white p-4 mb-4">
-          <h2 className="h5 fw-bold mb-3">Personal Information</h2>
-
-          <div className="row g-3">
-            <div className="col-md-6">
-              <label className="small text-muted">Full Name</label>
-              <input type="text" className="form-control" disabled value={session?.user?.name || ''} />
-            </div>
-
-            <div className="col-md-6">
-              <label className="small text-muted">UH Email</label>
-              <input type="text" className="form-control" disabled value={session?.user?.email || ''} />
-            </div>
-
-            <div className="col-12">
-              <label className="small text-muted">Preferred Contact</label>
-              <input type="text" className="form-control" disabled value={fakeStats.preferredContact} />
-            </div>
-          </div>
-        </div>
-
-        {/* -------------------------------- Active Posts Tabs -------------------------------- */}
+        {/* -------------------------------- Active Posts -------------------------------- */}
         <div className="rounded-4 shadow-sm bg-white p-4 mb-4">
           <h2 className="h5 fw-bold mb-3">Your Active Posts</h2>
 
