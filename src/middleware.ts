@@ -4,8 +4,7 @@ import { NextResponse } from 'next/server';
 
 export default withAuth(
   function middleware(req) {
-    // 🔁 Was: req.nextauth.token?.randomKey
-    const role = req.nextauth.token?.role;
+    const role = req.nextauth.token?.role as string | undefined;
 
     // Auto-logout if DISABLED
     if (role === 'DISABLED') {
@@ -21,17 +20,19 @@ export default withAuth(
       return res;
     }
 
+    // Everyone else (or no token) just continues
     return NextResponse.next();
   },
   {
     callbacks: {
       authorized: ({ token }) => {
-        if (!token) return false;
+        // ✅ Allow public / logged-out access
+        if (!token) return true;
 
-        // 🔁 Was: token.randomKey
-        // Block DISABLED users
+        // ❌ Block DISABLED users
         if ((token as any).role === 'DISABLED') return false;
 
+        // ✅ Allow all other logged-in users
         return true;
       },
     },
