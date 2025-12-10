@@ -16,7 +16,7 @@ const authOptions: NextAuthOptions = {
 
   providers: [
     /* ------------------------------------------------------------
-       NORMAL LOGIN
+       NORMAL USER LOGIN
     ------------------------------------------------------------ */
     CredentialsProvider({
       id: 'credentials',
@@ -27,11 +27,18 @@ const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) return null;
+        console.log('➡️ USER LOGIN START', credentials);
+
+        if (!credentials?.email || !credentials.password) {
+          console.log('❌ Missing credentials');
+          return null;
+        }
 
         const email = credentials.email.trim().toLowerCase();
+        console.log('➡️ Normalized email:', email);
 
         if (!isHawaiiEmail(email)) {
+          console.log('❌ Invalid email domain');
           throw new Error('InvalidDomain');
         }
 
@@ -39,19 +46,36 @@ const authOptions: NextAuthOptions = {
           where: { email },
         });
 
-        if (!user) return null;
+        console.log('➡️ Prisma user result:', user);
+
+        if (!user) {
+          console.log('❌ No user found');
+          return null;
+        }
 
         const validPass = await compare(credentials.password, user.password);
-        if (!validPass) return null;
+        console.log('➡️ Password match:', validPass);
+
+        if (!validPass) {
+          console.log('❌ Wrong password');
+          return null;
+        }
 
         if (!user.emailVerified) {
+          console.log('❌ Email not verified');
           throw new Error('EmailNotVerified');
         }
 
-        // Block disabled accounts at login
         if (user.role === 'DISABLED') {
+          console.log('❌ User disabled');
           throw new Error('AccountDisabled');
         }
+
+        console.log('✅ USER LOGIN SUCCESS', {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        });
 
         return {
           id: `${user.id}`,
@@ -66,18 +90,25 @@ const authOptions: NextAuthOptions = {
     ------------------------------------------------------------ */
     CredentialsProvider({
       id: 'admin-credentials',
-      name: 'Admin Only Login',
+      name: 'Admin Login',
       credentials: {
         email: { label: 'Admin Email', type: 'email', placeholder: 'you@hawaii.edu' },
         password: { label: 'Password', type: 'password' },
       },
 
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) return null;
+        console.log('➡️ ADMIN LOGIN START', credentials);
+
+        if (!credentials?.email || !credentials.password) {
+          console.log('❌ Missing credentials');
+          return null;
+        }
 
         const email = credentials.email.trim().toLowerCase();
+        console.log('➡️ Normalized email:', email);
 
         if (!isHawaiiEmail(email)) {
+          console.log('❌ Invalid email domain for admin');
           throw new Error('InvalidDomain');
         }
 
@@ -85,19 +116,36 @@ const authOptions: NextAuthOptions = {
           where: { email },
         });
 
-        if (!user) return null;
+        console.log('➡️ Prisma admin result:', user);
+
+        if (!user) {
+          console.log('❌ No admin user found');
+          return null;
+        }
 
         const validPass = await compare(credentials.password, user.password);
-        if (!validPass) return null;
+        console.log('➡️ Admin password match:', validPass);
+
+        if (!validPass) {
+          console.log('❌ Wrong admin password');
+          return null;
+        }
 
         if (!user.emailVerified) {
+          console.log('❌ Admin email not verified');
           throw new Error('EmailNotVerified');
         }
 
-        // Must be admin
         if (user.role !== 'ADMIN') {
+          console.log('❌ Not an admin account');
           throw new Error('NotAdmin');
         }
+
+        console.log('✅ ADMIN LOGIN SUCCESS', {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        });
 
         return {
           id: `${user.id}`,
@@ -118,25 +166,24 @@ const authOptions: NextAuthOptions = {
        SIGN-IN CHECK
     --------------------------------------- */
     async signIn({ user }) {
-      if (!user?.email) return false;
-      return true;
+      return !!user?.email;
     },
 
     /* ---------------------------------------
        SESSION CALLBACK
     --------------------------------------- */
     async session({ session, token }) {
-      // If token says DISABLED, strip user info from session
+      console.log('➡️ SESSION CALLBACK', { token, session });
+
       if (token.role === 'DISABLED') {
+        console.log('❌ Session blocked: user disabled');
         return {
           ...session,
           user: undefined,
         };
       }
 
-      if (!session.user) {
-        return session;
-      }
+      if (!session.user) return session;
 
       return {
         ...session,
@@ -150,45 +197,41 @@ const authOptions: NextAuthOptions = {
 
     /* ---------------------------------------
        JWT CALLBACK
-       - Runs on every request
-       - Keeps token in sync with DB (role changes, disabling, etc.)
     --------------------------------------- */
     async jwt({ token, user }) {
-      // First time (login) - user comes from authorize()
+      console.log('➡️ JWT CALLBACK START', { token, user });
+
+      // First login
       if (user) {
-        const u = user as any;
+        console.log('➡️ JWT first login user object:', user);
+
         return {
           ...token,
-          id: u.id,
-          email: u.email,
-          role: u.role,
+          id: (user as any).id,
+          email: (user as any).email,
+          role: (user as any).role,
         };
       }
 
-      // Subsequent calls: keep token role in sync with DB
+      // Sync role with database every request
       try {
         const userId = token.id ? Number(token.id) : undefined;
+
         let dbUser = null;
 
         if (Number.isInteger(userId)) {
-          dbUser = await prisma.user.findUnique({
-            where: { id: userId },
-          });
+          dbUser = await prisma.user.findUnique({ where: { id: userId } });
         } else if (token.email) {
-          dbUser = await prisma.user.findUnique({
-            where: { email: token.email as string },
-          });
+          dbUser = await prisma.user.findUnique({ where: { email: token.email as string } });
         }
+
+        console.log('➡️ JWT DB user:', dbUser);
 
         if (!dbUser) {
-          // If the user no longer exists, treat them as disabled
-          return {
-            ...token,
-            role: 'DISABLED',
-          };
+          console.log('❌ JWT user not found → disabling');
+          return { ...token, role: 'DISABLED' };
         }
 
-        // Sync latest role & email from DB
         return {
           ...token,
           id: dbUser.id.toString(),
@@ -196,7 +239,7 @@ const authOptions: NextAuthOptions = {
           role: dbUser.role,
         };
       } catch (err) {
-        // On any DB error, do not break auth; just return token as-is
+        console.log('❌ JWT exception:', err);
         return token;
       }
     },
