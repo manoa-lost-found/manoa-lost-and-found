@@ -48,7 +48,7 @@ const authOptions: NextAuthOptions = {
           throw new Error('EmailNotVerified');
         }
 
-        // Block disabled
+        // Block disabled accounts at login
         if (user.role === 'DISABLED') {
           throw new Error('AccountDisabled');
         }
@@ -94,6 +94,7 @@ const authOptions: NextAuthOptions = {
           throw new Error('EmailNotVerified');
         }
 
+        // Must be admin
         if (user.role !== 'ADMIN') {
           throw new Error('NotAdmin');
         }
@@ -124,13 +125,17 @@ const authOptions: NextAuthOptions = {
     /* ---------------------------------------
        SESSION CALLBACK
     --------------------------------------- */
-    session({ session, token }) {
-      // block disabled
+    async session({ session, token }) {
+      // If token says DISABLED, strip user info from session
       if (token.role === 'DISABLED') {
         return {
           ...session,
           user: undefined,
         };
+      }
+
+      if (!session.user) {
+        return session;
       }
 
       return {
@@ -145,16 +150,55 @@ const authOptions: NextAuthOptions = {
 
     /* ---------------------------------------
        JWT CALLBACK
+       - Runs on every request
+       - Keeps token in sync with DB (role changes, disabling, etc.)
     --------------------------------------- */
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
+      // First time (login) - user comes from authorize()
       if (user) {
+        const u = user as any;
         return {
           ...token,
-          id: (user as any).id,
-          role: (user as any).role,
+          id: u.id,
+          email: u.email,
+          role: u.role,
         };
       }
-      return token;
+
+      // Subsequent calls: keep token role in sync with DB
+      try {
+        const userId = token.id ? Number(token.id) : undefined;
+        let dbUser = null;
+
+        if (Number.isInteger(userId)) {
+          dbUser = await prisma.user.findUnique({
+            where: { id: userId },
+          });
+        } else if (token.email) {
+          dbUser = await prisma.user.findUnique({
+            where: { email: token.email as string },
+          });
+        }
+
+        if (!dbUser) {
+          // If the user no longer exists, treat them as disabled
+          return {
+            ...token,
+            role: 'DISABLED',
+          };
+        }
+
+        // Sync latest role & email from DB
+        return {
+          ...token,
+          id: dbUser.id.toString(),
+          email: dbUser.email,
+          role: dbUser.role,
+        };
+      } catch (err) {
+        // On any DB error, do not break auth; just return token as-is
+        return token;
+      }
     },
   },
 
