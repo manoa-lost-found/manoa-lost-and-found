@@ -10,7 +10,9 @@ const isHawaiiEmail = (email: string): boolean => {
 };
 
 const authOptions: NextAuthOptions = {
-  session: { strategy: 'jwt' },
+  session: {
+    strategy: 'jwt',
+  },
 
   providers: [
     /* ------------------------------------------------------------
@@ -29,19 +31,30 @@ const authOptions: NextAuthOptions = {
 
         const email = credentials.email.trim().toLowerCase();
 
-        if (!isHawaiiEmail(email)) throw new Error('InvalidDomain');
+        if (!isHawaiiEmail(email)) {
+          throw new Error('InvalidDomain');
+        }
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({
+          where: { email },
+        });
+
         if (!user) return null;
 
-        const isPasswordValid = await compare(credentials.password, user.password);
-        if (!isPasswordValid) return null;
+        const validPass = await compare(credentials.password, user.password);
+        if (!validPass) return null;
 
-        if (!user.emailVerified) throw new Error('EmailNotVerified');
-        if (user.role === 'DISABLED') throw new Error('AccountDisabled');
+        if (!user.emailVerified) {
+          throw new Error('EmailNotVerified');
+        }
+
+        // Block disabled
+        if (user.role === 'DISABLED') {
+          throw new Error('AccountDisabled');
+        }
 
         return {
-          id: String(user.id),
+          id: `${user.id}`,
           email: user.email,
           role: user.role,
         };
@@ -63,19 +76,30 @@ const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials.password) return null;
 
         const email = credentials.email.trim().toLowerCase();
-        if (!isHawaiiEmail(email)) throw new Error('InvalidDomain');
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        if (!isHawaiiEmail(email)) {
+          throw new Error('InvalidDomain');
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+        });
+
         if (!user) return null;
 
-        const isPasswordValid = await compare(credentials.password, user.password);
-        if (!isPasswordValid) return null;
+        const validPass = await compare(credentials.password, user.password);
+        if (!validPass) return null;
 
-        if (!user.emailVerified) throw new Error('EmailNotVerified');
-        if (user.role !== 'ADMIN') throw new Error('NotAdmin');
+        if (!user.emailVerified) {
+          throw new Error('EmailNotVerified');
+        }
+
+        if (user.role !== 'ADMIN') {
+          throw new Error('NotAdmin');
+        }
 
         return {
-          id: String(user.id),
+          id: `${user.id}`,
           email: user.email,
           role: user.role,
         };
@@ -98,36 +122,38 @@ const authOptions: NextAuthOptions = {
     },
 
     /* ---------------------------------------
-       SESSION CALLBACK (NO MUTATION)
+       SESSION CALLBACK
     --------------------------------------- */
-    session: ({ session, token }) => {
-      const safeSession = {
-        ...session,
-        user: session.user
-          ? {
-              ...session.user,
-              id: token?.id,
-              role: token?.role,
-            }
-          : undefined,
-      };
+    session({ session, token }) {
+      // block disabled
+      if (token.role === 'DISABLED') {
+        return {
+          ...session,
+          user: undefined,
+        };
+      }
 
-      return safeSession;
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.id,
+          role: token.role,
+        },
+      };
     },
 
     /* ---------------------------------------
-       JWT CALLBACK (NO MUTATION)
+       JWT CALLBACK
     --------------------------------------- */
-    jwt: ({ token, user }) => {
+    jwt({ token, user }) {
       if (user) {
-        const safeToken = {
+        return {
           ...token,
           id: (user as any).id,
           role: (user as any).role,
         };
-        return safeToken;
       }
-
       return token;
     },
   },
