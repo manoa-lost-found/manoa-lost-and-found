@@ -5,7 +5,9 @@ import { useSession } from 'next-auth/react';
 
 export default function AdminPage() {
   const { data: session } = useSession();
-  const role = (session?.user as any)?.randomKey;
+
+  // FIX: role now comes from session.user.role (NOT randomKey)
+  const role = (session?.user as any)?.role;
   const isAdmin = role === 'ADMIN';
 
   if (!isAdmin) {
