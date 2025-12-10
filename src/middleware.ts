@@ -25,10 +25,9 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) => {
-        // Not logged in → block
         if (!token) return false;
 
-        // Disabled → block
+        // Block disabled accounts everywhere
         if (token.randomKey === 'DISABLED') return false;
 
         return true;
@@ -37,19 +36,15 @@ export default withAuth(
   },
 );
 
-// 🛑 IMPORTANT: Middleware SHOULD NOT run on:
-// - Home page
-// - FAQ
-// - Auth pages
-// - Static files
-// - Admin pages
-// - API routes
-
+// IMPORTANT — middleware runs only on protected areas
 export const config = {
   matcher: [
-    // Protect only user pages:
+    // User-protected pages
     '/dashboard/:path*',
     '/profile/:path*',
     '/item/:path*',
+
+    // Admin-only pages (add back!)
+    '/admin/:path*',
   ],
 };
