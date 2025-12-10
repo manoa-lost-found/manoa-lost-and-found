@@ -26,22 +26,22 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) => {
-        // ✅ Allow public / logged-out access
+        // Allow public / logged-out access
         if (!token) return true;
 
-        // ❌ Block DISABLED users
+        // Block DISABLED users
         if ((token as any).role === 'DISABLED') return false;
 
-        // ✅ Allow all other logged-in users
+        // Allow all other logged-in users
         return true;
       },
     },
   },
 );
 
-// IMPORTANT — DO NOT run middleware on ANY API routes or admin actions
+// IMPORTANT — DO NOT run middleware on API routes or ANY admin routes
 export const config = {
   matcher: [
-    '/((?!api|auth|admin/user-actions|_next|favicon.ico).*)',
+    '/((?!api|auth|admin|_next|favicon.ico).*)',
   ],
 };
