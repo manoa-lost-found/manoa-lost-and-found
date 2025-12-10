@@ -1,4 +1,6 @@
 // prisma/schema.prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -6,6 +8,9 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
+  // For local development:
+  // url      = env("DATABASE_URL")
+  // For Vercel (Neon / Vercel Postgres):
   url       = env("POSTGRES_PRISMA_URL")
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
@@ -18,21 +23,17 @@ enum Role {
 
 model User {
   id       Int    @id @default(autoincrement())
-
-  // NEW — optional display name
-  name     String?
-
   email    String @unique
   password String
   role     Role   @default(USER)
 
-  // NEW — optional preferred contact info
-  preferredContact String?
-
+  // null = not verified yet, non-null = verified at this time
   emailVerified DateTime?
 
+  // Relation to email verification tokens
   verificationTokens EmailVerificationToken[]
-  lostFoundItems     LostFoundItem[]
+
+  lostFoundItems LostFoundItem[]
 }
 
 enum Condition {
@@ -51,10 +52,14 @@ model Stuff {
 }
 
 model EmailVerificationToken {
-  id        Int    @id @default(autoincrement())
-  token     String @unique
-  userId    Int
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id    Int    @id @default(autoincrement())
+  token String @unique
+
+  // Which user this token belongs to
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // When this token expires (after this time it is invalid)
   expiresAt DateTime
 }
 
@@ -88,4 +93,4 @@ model LostFoundItem {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
+} 
