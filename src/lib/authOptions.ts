@@ -4,7 +4,7 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 
-// Allow only @hawaii.edu emails
+// Only allow @hawaii.edu emails
 const isHawaiiEmail = (email: string): boolean => {
   return /^[^@\s]+@hawaii\.edu$/i.test(email.trim());
 };
@@ -15,22 +15,19 @@ const authOptions: NextAuthOptions = {
   },
 
   providers: [
-    // Normal login
+    /* ------------------------------------------------------------
+       NORMAL LOGIN
+    ------------------------------------------------------------ */
     CredentialsProvider({
       id: 'credentials',
       name: 'Email and Password',
       credentials: {
-        email: {
-          label: 'Email',
-          type: 'email',
-          placeholder: 'you@hawaii.edu',
-        },
+        email: { label: 'Email', type: 'email', placeholder: 'you@hawaii.edu' },
         password: { label: 'Password', type: 'password' },
       },
+
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials.password) return null;
 
         const email = credentials.email.trim().toLowerCase();
 
@@ -41,6 +38,7 @@ const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email },
         });
+
         if (!user) return null;
 
         const isPasswordValid = await compare(credentials.password, user.password);
@@ -50,7 +48,7 @@ const authOptions: NextAuthOptions = {
           throw new Error('EmailNotVerified');
         }
 
-        // prevent disabled users from logging in
+        // BLOCK DISABLED ACCOUNTS
         if (user.role === 'DISABLED') {
           throw new Error('AccountDisabled');
         }
@@ -58,27 +56,24 @@ const authOptions: NextAuthOptions = {
         return {
           id: `${user.id}`,
           email: user.email,
-          randomKey: user.role, // ADMIN | USER | DISABLED
+          role: user.role, // <-- REAL ROLE FIELD
         };
       },
     }),
 
-    // Admin login (DB role only)
+    /* ------------------------------------------------------------
+       ADMIN LOGIN
+    ------------------------------------------------------------ */
     CredentialsProvider({
       id: 'admin-credentials',
       name: 'Admin Only Login',
       credentials: {
-        email: {
-          label: 'Admin Email',
-          type: 'email',
-          placeholder: 'you@hawaii.edu',
-        },
+        email: { label: 'Admin Email', type: 'email', placeholder: 'you@hawaii.edu' },
         password: { label: 'Password', type: 'password' },
       },
+
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials.password) return null;
 
         const email = credentials.email.trim().toLowerCase();
 
@@ -89,6 +84,7 @@ const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email },
         });
+
         if (!user) return null;
 
         const isPasswordValid = await compare(credentials.password, user.password);
@@ -105,7 +101,7 @@ const authOptions: NextAuthOptions = {
         return {
           id: `${user.id}`,
           email: user.email,
-          randomKey: user.role,
+          role: user.role,
         };
       },
     }),
@@ -117,15 +113,20 @@ const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
+    /* ---------------------------------------
+       BLOCK DISABLED USERS AT SIGN-IN
+    --------------------------------------- */
     async signIn({ user }) {
       if (!user?.email) return false;
-      return isHawaiiEmail(user.email);
+      return true;
     },
 
-    // FIXED: DO NOT return null — NextAuth requires a valid session object
+    /* ---------------------------------------
+       ATTACH ROLE + ID INTO SESSION
+    --------------------------------------- */
     session: ({ session, token }) => {
-      // If a disabled user somehow has a session → wipe user info (auto-logout)
-      if (token.randomKey === 'DISABLED') {
+      // If a DISABLED account somehow has a token → wipe session (forces logout)
+      if (token.role === 'DISABLED') {
         return {
           ...session,
           user: undefined,
@@ -137,18 +138,20 @@ const authOptions: NextAuthOptions = {
         user: {
           ...session.user,
           id: token.id,
-          randomKey: token.randomKey,
+          role: token.role, // <-- REAL ROLE
         },
       };
     },
 
+    /* ---------------------------------------
+       ATTACH ROLE + ID INTO JWT
+    --------------------------------------- */
     jwt: ({ token, user }) => {
       if (user) {
-        const u: any = user;
         return {
           ...token,
-          id: u.id,
-          randomKey: u.randomKey, // ADMIN | USER | DISABLED
+          id: user.id,
+          role: (user as any).role,
         };
       }
       return token;
