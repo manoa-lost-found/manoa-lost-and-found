@@ -22,7 +22,14 @@ export default function AdminPage() {
     return (
       <main className="container py-5">
         <h1 className="fw-bold">Access Denied</h1>
-        <p className="text-muted">You must be an administrator to view this page.</p>
+        <p className="text-muted">
+          You must be an administrator to view this page.
+        </p>
+        <p className="mt-3">
+          <Link href="/auth/signin" className="link-primary">
+            Go to sign in
+          </Link>
+        </p>
       </main>
     );
   }
