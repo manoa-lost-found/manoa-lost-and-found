@@ -39,7 +39,7 @@ function StatusBadge({ status }: { status: ItemStatus }) {
 }
 
 /* -----------------------------------------------------
-   Dashboard Card
+   Dashboard Item Card
 ----------------------------------------------------- */
 function DashboardCard({ item }: { item: MyItem }) {
   const dateLabel = new Date(item.date).toLocaleDateString('en-US', {
@@ -51,7 +51,6 @@ function DashboardCard({ item }: { item: MyItem }) {
   return (
     <div className="card border-0 shadow-sm rounded-4 mb-3">
       <div className="row g-0">
-
         {/* Image */}
         <div className="col-md-3">
           <div
@@ -83,7 +82,6 @@ function DashboardCard({ item }: { item: MyItem }) {
         {/* Content */}
         <div className="col-md-9">
           <div className="card-body p-3 p-md-4">
-
             <div className="d-flex justify-content-between align-items-start">
               <div>
                 <h3 className="h6 fw-bold mb-1">{item.title}</h3>
@@ -101,6 +99,7 @@ function DashboardCard({ item }: { item: MyItem }) {
                 <Link href={`/item/${item.id}`} className="btn btn-outline-secondary btn-sm">
                   View
                 </Link>
+
                 <Link href={`/item/${item.id}/edit`} className="btn btn-primary btn-sm">
                   Edit
                 </Link>
@@ -120,7 +119,7 @@ function DashboardCard({ item }: { item: MyItem }) {
 }
 
 /* -----------------------------------------------------
-   Main Dashboard
+   MAIN DASHBOARD PAGE
 ----------------------------------------------------- */
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -128,17 +127,15 @@ export default function DashboardPage() {
   const [items, setItems] = useState<MyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'lost' | 'found'>('lost');
-
-  /* Fake Stats (UI only) */
-  const fakeStats = {
-    posted: 14,
-    reunited: 6,
-    pending: 2,
-  };
+  const [stats, setStats] = useState({
+    posted: 0,
+    reunited: 0,
+    pending: 0,
+  });
 
   /* Load user items */
   useEffect(() => {
-    async function load() {
+    async function loadItems() {
       const res = await fetch('/api/my-items');
       if (res.ok) {
         const data = await res.json();
@@ -147,20 +144,34 @@ export default function DashboardPage() {
       setLoading(false);
     }
 
-    if (status === 'authenticated') load();
+    async function loadStats() {
+      const res = await fetch('/api/user/stats');
+      if (res.ok) {
+        const data = await res.json();
+        setStats({
+          posted: data.posted,
+          reunited: data.reunited,
+          pending: data.pending,
+        });
+      }
+    }
+
+    if (status === 'authenticated') {
+      loadItems();
+      loadStats();
+    }
   }, [status]);
 
   const lost = items.filter((i) => i.type === 'LOST');
   const found = items.filter((i) => i.type === 'FOUND');
 
-  /* Auth redirect */
+  /* Redirect if not authenticated */
   if (status === 'unauthenticated') {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/auth/signin';
-    }
+    if (typeof window !== 'undefined') window.location.href = '/auth/signin';
     return null;
   }
 
+  /* Loading screen */
   if (status === 'loading' || loading) {
     return (
       <main className="container py-5">
@@ -169,6 +180,9 @@ export default function DashboardPage() {
     );
   }
 
+  /* -----------------------------------------------------
+     Render Dashboard UI
+  ----------------------------------------------------- */
   return (
     <main
       style={{
@@ -181,6 +195,7 @@ export default function DashboardPage() {
 
         {/* -------------------------------- Profile Header -------------------------------- */}
         <div className="d-flex align-items-center gap-4 mb-4">
+
           {/* Initials */}
           <div
             style={{
@@ -199,6 +214,7 @@ export default function DashboardPage() {
             {session?.user?.email?.slice(0, 2).toUpperCase()}
           </div>
 
+          {/* Basic profile info */}
           <div>
             <h1 className="fw-bold mb-1">My Profile</h1>
             <p className="text-muted mb-1">{session?.user?.email}</p>
@@ -206,7 +222,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* -------------------------------- Account Information -------------------------------- */}
+        {/* -------------------------------- Account Info -------------------------------- */}
         <div className="rounded-4 shadow-sm bg-white p-4 mb-4">
           <h2 className="h5 fw-bold mb-3">Account Information</h2>
 
@@ -227,31 +243,31 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* -------------------------------- Stats -------------------------------- */}
+        {/* -------------------------------- REAL STATS -------------------------------- */}
         <div className="row mb-4">
           <div className="col-md-4">
             <div className="p-3 rounded-4 shadow-sm bg-white text-center">
-              <h3 className="fw-bold mb-1">{fakeStats.posted}</h3>
+              <h3 className="fw-bold mb-1">{stats.posted}</h3>
               <p className="text-muted small mb-0">Items Posted</p>
             </div>
           </div>
 
           <div className="col-md-4">
             <div className="p-3 rounded-4 shadow-sm bg-white text-center">
-              <h3 className="fw-bold mb-1">{fakeStats.reunited}</h3>
+              <h3 className="fw-bold mb-1">{stats.reunited}</h3>
               <p className="text-muted small mb-0">Items Reunited</p>
             </div>
           </div>
 
           <div className="col-md-4">
             <div className="p-3 rounded-4 shadow-sm bg-white text-center">
-              <h3 className="fw-bold mb-1">{fakeStats.pending}</h3>
+              <h3 className="fw-bold mb-1">{stats.pending}</h3>
               <p className="text-muted small mb-0">Reports Pending</p>
             </div>
           </div>
         </div>
 
-        {/* -------------------------------- Active Posts -------------------------------- */}
+        {/* -------------------------------- Active Posts Tabs -------------------------------- */}
         <div className="rounded-4 shadow-sm bg-white p-4 mb-4">
           <h2 className="h5 fw-bold mb-3">Your Active Posts</h2>
 
@@ -276,14 +292,12 @@ export default function DashboardPage() {
           {tab === 'lost' &&
             (lost.length === 0
               ? <p className="text-muted">No lost reports yet.</p>
-              : lost.map((item) => <DashboardCard key={item.id} item={item} />)
-            )}
+              : lost.map((item) => <DashboardCard key={item.id} item={item} />))}
 
           {tab === 'found' &&
             (found.length === 0
               ? <p className="text-muted">No found reports yet.</p>
-              : found.map((item) => <DashboardCard key={item.id} item={item} />)
-            )}
+              : found.map((item) => <DashboardCard key={item.id} item={item} />))}
         </div>
 
         {/* -------------------------------- Notifications -------------------------------- */}
