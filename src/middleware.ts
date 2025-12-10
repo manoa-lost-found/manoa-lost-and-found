@@ -4,14 +4,15 @@ import { NextResponse } from 'next/server';
 
 export default withAuth(
   function middleware(req) {
-    const role = req.nextauth.token?.randomKey;
+    // 🔁 Was: req.nextauth.token?.randomKey
+    const role = req.nextauth.token?.role;
 
-    // If user is DISABLED → force logout
+    // Auto-logout if DISABLED
     if (role === 'DISABLED') {
-      const logoutUrl = new URL('/auth/signout', req.url);
-      const res = NextResponse.redirect(logoutUrl);
+      const url = new URL('/auth/signout', req.url);
+      const res = NextResponse.redirect(url);
 
-      // Hard clear cookie
+      // Clear session token immediately
       res.cookies.set('__Secure-next-auth.session-token', '', {
         maxAge: 0,
         path: '/',
@@ -27,8 +28,9 @@ export default withAuth(
       authorized: ({ token }) => {
         if (!token) return false;
 
-        // Block disabled accounts everywhere
-        if (token.randomKey === 'DISABLED') return false;
+        // 🔁 Was: token.randomKey
+        // Block DISABLED users
+        if ((token as any).role === 'DISABLED') return false;
 
         return true;
       },
@@ -36,15 +38,9 @@ export default withAuth(
   },
 );
 
-// IMPORTANT — middleware runs only on protected areas
+// IMPORTANT — DO NOT run middleware on ANY API routes or admin actions
 export const config = {
   matcher: [
-    // User-protected pages
-    '/dashboard/:path*',
-    '/profile/:path*',
-    '/item/:path*',
-
-    // Admin-only pages (add back!)
-    '/admin/:path*',
+    '/((?!api|auth|admin/user-actions|_next|favicon.ico).*)',
   ],
 };
