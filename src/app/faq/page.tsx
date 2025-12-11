@@ -76,7 +76,7 @@ export default function FAQPage() {
                   Include a clear description, where you last remember seeing it,
                   and the date you lost it. Adding a photo can make it easier for
                   others to recognize. The more detail you give, the better the
-                  chances of a match. 💡
+                  chances of a match.
                 </p>
               </div>
             </div>
@@ -107,13 +107,12 @@ export default function FAQPage() {
                   You&apos;ll choose an official pickup or turn-in location so the
                   owner knows exactly where to go. Please only choose locations you
                   are actually able to reach. You&apos;re doing someone a huge favor
-                  by listing it. 🙌
+                  by listing it.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Q3 – Lost & Found Feed (no hyperlink) */}
           <div className="col-md-6">
             <div className="card h-100 border-0 shadow-sm rounded-4">
               <div className="card-body p-4">
@@ -122,17 +121,17 @@ export default function FAQPage() {
                 </h2>
 
                 <p className="text-muted mb-2">
-                  Visit the
-                  {' '}
-                  <span className="fw-semibold">Lost &amp; Found Feed</span>
-                  {' '}
+                  Visit the{' '}
+                  <Link href="/list" className="fw-semibold text-decoration-none">
+                    Items Feed
+                  </Link>{' '}
                   (available only to logged-in users) to browse campus-wide reports.
                 </p>
 
                 <p className="text-muted mb-0">
                   You can filter by category, building, item type, and sort by
                   newest or oldest reports. It&apos;s the main hub for everything
-                  that&apos;s been reported. 🔁
+                  that&apos;s been reported.
                 </p>
               </div>
             </div>
@@ -178,7 +177,7 @@ export default function FAQPage() {
 
                 <p className="text-muted mb-0">
                   Follow the steps to turn in lost items at approved locations.
-                  This ensures they can be safely reunited with their owners. 🏁
+                  This ensures they can be safely reunited with their owners.
                 </p>
               </div>
             </div>
@@ -208,7 +207,7 @@ export default function FAQPage() {
                 <p className="text-muted mb-0">
                   Once an item matching your report is posted, you&apos;ll receive a
                   notification. Follow instructions and be prepared to verify
-                  ownership. 🔐
+                  ownership.
                 </p>
               </div>
             </div>
@@ -224,7 +223,9 @@ export default function FAQPage() {
 
                 <p className="text-muted mb-0">
                   Turn wallets, IDs, keys, electronics, or suspicious items in to
-                  an official UH office or DPS. When unsure, let DPS handle it. 🚔
+                  an official UH office or DPS. When unsure, let DPS handle it.
+                  <br />
+                  (UH Department of Public Safety: 956-6911)
                 </p>
               </div>
             </div>
@@ -240,8 +241,8 @@ export default function FAQPage() {
 
                 <p className="text-muted mb-0">
                   You can delete your own posts. Admins may remove posts that are
-                  inappropriate, unsafe, or unrelated to UH Mānoa. Contact an
-                  admin if you believe something needs review. 📩
+                  inappropriate, unsafe, or unrelated to UH Manoa. Contact an
+                  admin if you believe something needs review.
                 </p>
               </div>
             </div>
@@ -257,7 +258,9 @@ export default function FAQPage() {
 
                 <p className="text-muted mb-0">
                   No. This site is a student project and not an official UH
-                  service. For official information, refer to UH Mānoa or DPS. 📘
+                  service. For official information, refer to UH Manoa or DPS.
+                  <br />
+                  (UH Department of Public Safety: 956-6911)
                 </p>
               </div>
             </div>
@@ -274,7 +277,9 @@ export default function FAQPage() {
                 <p className="text-muted mb-0">
                   If your question isn&apos;t answered here, sign in to contact an
                   admin or talk with your instructor/project lead. For emergencies,
-                  reach out to UH DPS immediately. ❤️
+                  reach out to UH DPS immediately.
+                  <br />
+                  (UH Department of Public Safety: 956-6911)
                 </p>
               </div>
             </div>

@@ -3,6 +3,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BUILDINGS } from '@/data/buildings';
@@ -47,6 +48,7 @@ function typeLabel(type: ItemType): string {
 }
 
 export default function LostFoundFeedPage() {
+  // state
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +59,16 @@ export default function LostFoundFeedPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('NEWEST');
 
+  // session hook
+  const { data: session, status } = useSession();
+
+  // effects (always called, but can early-return inside)
   useEffect(() => {
+    if (status !== 'authenticated') {
+      // don't load items until we know the user is logged in
+      return;
+    }
+
     async function load() {
       try {
         const res = await fetch('/api/items');
@@ -74,7 +85,7 @@ export default function LostFoundFeedPage() {
     }
 
     load();
-  }, []);
+  }, [status]);
 
   const filteredItems = useMemo(() => {
     let next = [...items];
@@ -82,7 +93,8 @@ export default function LostFoundFeedPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       next = next.filter(
-        (item) => item.title.toLowerCase().includes(q)
+        (item) =>
+          item.title.toLowerCase().includes(q)
           || item.description.toLowerCase().includes(q),
       );
     }
@@ -110,6 +122,55 @@ export default function LostFoundFeedPage() {
 
     return next;
   }, [items, search, typeFilter, buildingFilter, categoryFilter, sortOrder]);
+
+  if (status === 'loading') {
+    return (
+      <main
+        style={{
+          background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
+          minHeight: 'calc(100vh - 64px)',
+          padding: '3.5rem 0 4rem',
+        }}
+      >
+        <div className="container text-center py-5">
+          <p className="text-muted mb-0">Checking your session…</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!session) {
+    return (
+      <main
+        style={{
+          background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
+          minHeight: 'calc(100vh - 64px)',
+          padding: '3.5rem 0 4rem',
+        }}
+      >
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-md-8">
+              <div className="card border-0 shadow-sm rounded-4">
+                <div className="card-body text-center p-4">
+                  <h1 className="h4 fw-bold mb-2">Sign In Required</h1>
+                  <p className="text-muted mb-3">
+                    The <strong>Items Feed</strong> is only available to authenticated UH Manoa users.
+                    Please sign in with your UH email to view campus lost &amp; found posts.
+                  </p>
+                  <Link href="/auth/signin" className="btn btn-success">
+                    Go to Log In
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // normal authenticated render
 
   return (
     <main

@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
@@ -11,8 +12,7 @@ export default defineConfig({
   reporter: 'html',
 
   use: {
-    // So `page.goto('/')` becomes http://127.0.0.1:3000/
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
   },
 
