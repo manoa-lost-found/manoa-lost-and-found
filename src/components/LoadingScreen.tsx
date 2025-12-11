@@ -80,12 +80,20 @@ export default function LoadingScreen() {
         />
       </div>
 
-      <p style={{ marginTop: '10px', color: '#1e3d32', fontSize: '14px' }}>
+      <p
+        style={{
+          marginTop: '10px',
+          color: '#1e3d32',
+          fontSize: '14px',
+          textAlign: 'center',
+          lineHeight: '1.2',
+        }}
+      >
         Loading
         <br />
-        {progress}
-        %
+        {progress}%
       </p>
+
     </div>
   );
 }
