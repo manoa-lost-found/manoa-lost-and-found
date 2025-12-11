@@ -500,7 +500,7 @@ export default function EditItemPage({ params }: { params: { id: string } }) {
               </div>
             </div>
 
-            <div className="mt-4 d-flex justify-content-between align-items-center">
+            <div className="mt-4 d-flex justify-content-between align-items-start gap-4">
               <p className="text-muted small mb-0">
                 Make sure the details are accurate. Clear information helps items
                 get back to the right person faster.

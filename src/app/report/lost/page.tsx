@@ -297,7 +297,8 @@ export default function ReportLostPage() {
               </div>
             </div>
 
-            <div className="mt-4 d-flex justify-content-between align-items-center">
+            {/* Submit Row */}
+            <div className="mt-4 d-flex justify-content-between align-items-start gap-4">
               <p className="text-muted small mb-0">
                 By submitting this form, you agree to only post honest and accurate information
                 about items lost on or near the UH Mānoa campus.

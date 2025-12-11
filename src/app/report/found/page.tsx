@@ -228,7 +228,7 @@ export default function ReportFoundPage() {
 
                   <div className="col-md-6">
                     <label htmlFor="building" className="form-label fw-semibold">
-                      Where you found it (building) *
+                      Where you found it *
                     </label>
                     <select
                       id="building"
@@ -347,10 +347,10 @@ export default function ReportFoundPage() {
               </div>
             </div>
 
-            <div className="mt-4 d-flex justify-content-between align-items-center">
+            <div className="mt-4 d-flex justify-content-between align-items-start gap-4">
               <p className="text-muted small mb-0">
                 By submitting this form, you agree to only post honest and accurate information
-                about items found on or near the UH Mānoa campus.
+                about items found on or near the UH Manoa campus.
               </p>
               <button
                 type="submit"
