@@ -1,16 +1,72 @@
 'use client';
 
-/* eslint-disable no-alert, jsx-a11y/label-has-associated-control */
+/* eslint-disable jsx-a11y/label-has-associated-control */
 
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { BUILDINGS } from '@/data/buildings';
 import { CATEGORIES } from '@/data/categories';
 
 type ItemType = 'LOST' | 'FOUND';
 
+// AUTO-RESIZE IMAGE HELPER
+function resizeImage(
+  file: File,
+  maxWidth = 1200,
+  maxHeight = 1200,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (ev) => {
+      if (typeof ev.target?.result !== 'string') {
+        reject(new Error('Invalid image data.'));
+        return;
+      }
+      img.src = ev.target.result;
+    };
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Auto-scale if needed
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width *= ratio;
+        height *= ratio;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not get canvas context.'));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // compression
+      resolve(dataUrl);
+    };
+
+    img.onerror = () => {
+      reject(new Error('Failed to load image.'));
+    };
+    reader.onerror = () => {
+      reject(new Error('Failed to read image file.'));
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+// FORM DATA TYPE
 type LostFormData = {
   title: string;
   description: string;
@@ -22,6 +78,7 @@ type LostFormData = {
   imagePreview: string | null;
 };
 
+// MAIN COMPONENT
 export default function ReportLostPage() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -38,19 +95,23 @@ export default function ReportLostPage() {
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
 
+  const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3 MB
+
+  // INPUT HANDLERS
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  // IMAGE INPUT + VALIDATION + AUTO-RESIZE
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+    setImageError(null);
 
     if (!file) {
       setFormData((prev) => ({
@@ -61,20 +122,42 @@ export default function ReportLostPage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
+    // Basic file size validation
+    if (file.size > MAX_FILE_SIZE) {
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: null,
+        imagePreview: null,
+      }));
+      setImageError('That image is too large. Please choose a file under 3 MB.');
+      return;
+    }
+
+    try {
+      const resized = await resizeImage(file, 1200, 1200);
       setFormData((prev) => ({
         ...prev,
         imageFile: file,
-        imagePreview: typeof reader.result === 'string' ? reader.result : null,
+        imagePreview: resized,
       }));
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: null,
+        imagePreview: null,
+      }));
+      setImageError('We could not process that image. Please try another file.');
+    }
   };
 
+  // FORM SUBMIT
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (submitting) return;
+
+    setFormError(null);
     setSubmitting(true);
 
     try {
@@ -86,22 +169,25 @@ export default function ReportLostPage() {
         building: formData.building,
         date: formData.date,
         locationName: formData.locationName.trim() || null,
-        imageUrl: formData.imagePreview,
+        imageUrl: formData.imagePreview, // resized image
       };
 
       const res = await fetch('/api/items', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        // eslint-disable-next-line no-console
-        console.error('Failed to submit lost item:', data);
-        alert(data?.error || 'Failed to submit lost item.');
+
+        const message =
+          data?.error ||
+          (res.status === 413
+            ? 'Your image is too large for the server. Please upload a smaller photo.'
+            : 'Failed to submit your lost item. Please try again.');
+
+        setFormError(message);
         setSubmitting(false);
         return;
       }
@@ -111,11 +197,14 @@ export default function ReportLostPage() {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
-      alert('Something went wrong while submitting your report.');
+      setFormError(
+        'Something went wrong while submitting your report. If you attached a photo, try a smaller image.',
+      );
       setSubmitting(false);
     }
   };
 
+  // ---------------------------------------------
   const today = new Date().toISOString().slice(0, 10);
 
   return (
@@ -145,8 +234,15 @@ export default function ReportLostPage() {
           className="card border-0 shadow-sm rounded-4"
         >
           <div className="card-body p-4 p-md-5">
+            {formError && (
+              <div className="alert alert-danger mb-3" role="alert">
+                {formError}
+              </div>
+            )}
+
             <div className="row g-4">
               <div className="col-md-7">
+                {/* Item Name */}
                 <div className="mb-3">
                   <label htmlFor="title" className="form-label fw-semibold">
                     Item name *
@@ -163,6 +259,7 @@ export default function ReportLostPage() {
                   />
                 </div>
 
+                {/* Description */}
                 <div className="mb-3">
                   <label htmlFor="description" className="form-label fw-semibold">
                     Description *
@@ -179,6 +276,7 @@ export default function ReportLostPage() {
                   />
                 </div>
 
+                {/* Category + Building */}
                 <div className="row g-3">
                   <div className="col-md-6">
                     <label htmlFor="category" className="form-label fw-semibold">
@@ -223,6 +321,7 @@ export default function ReportLostPage() {
                   </div>
                 </div>
 
+                {/* Date + Details */}
                 <div className="row g-3 mt-1">
                   <div className="col-md-6">
                     <label htmlFor="date" className="form-label fw-semibold">
@@ -257,6 +356,7 @@ export default function ReportLostPage() {
                 </div>
               </div>
 
+              {/* IMAGE UPLOAD AREA */}
               <div className="col-md-5">
                 <div className="mb-3">
                   <label htmlFor="image" className="form-label fw-semibold">
@@ -274,6 +374,10 @@ export default function ReportLostPage() {
                     Add a photo of the item if you have one. This helps others recognize it
                     more easily.
                   </p>
+
+                  {imageError && (
+                    <p className="text-danger small mb-0">{imageError}</p>
+                  )}
                 </div>
 
                 {formData.imagePreview && (
@@ -285,7 +389,7 @@ export default function ReportLostPage() {
                         height: '220px',
                       }}
                     >
-                      <Image
+                      <NextImage
                         src={formData.imagePreview}
                         alt="Item preview"
                         fill
