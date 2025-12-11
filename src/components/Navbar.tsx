@@ -10,16 +10,21 @@ export default function Navbar() {
   const loggedIn = status === 'authenticated';
   const pathname = usePathname();
 
-  // Role comes from authOptions: randomKey = user.role
-  const role = (session?.user as any)?.randomKey;
+  // Debug: see full session (including role / randomKey)
+  console.log('SESSION DEBUG', session);
+
+  // Role now comes from session.user.role (fallback to randomKey just in case)
+  const role =
+  (session?.user as any)?.role ?? (session?.user as any)?.randomKey;
   const isAdmin = role === 'ADMIN';
+
+  console.log('NAVBAR ROLE DEBUG', { role, isAdmin });
 
   const MAIN_LINKS = loggedIn
     ? [
       { href: '/', label: 'Home' },
       { href: '/faq', label: 'FAQ' },
       { href: '/list', label: 'Items Feed' },
-      // My Dashboard removed from here; now lives in dropdown
       { href: '/report/lost', label: 'Report Lost' },
       { href: '/report/found', label: 'Report Found' },
     ]
@@ -93,14 +98,18 @@ export default function Navbar() {
                   >
                     {session?.user?.email ?? 'Account'}
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                    {/* My Dashboard inside dropdown */}
+                  <ul
+                    className="dropdown-menu dropdown-menu-end"
+                    aria-labelledby="userDropdown"
+                  >
                     <li>
                       <Link href="/dashboard" className="dropdown-item">
                         My Dashboard
                       </Link>
                     </li>
-                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <hr className="dropdown-divider" />
+                    </li>
                     <li>
                       <button
                         type="button"
