@@ -19,9 +19,13 @@ interface AdminItem {
 }
 
 export default function AdminItemManager() {
-  const { data: session } = useSession();
-  const role = (session?.user as any)?.randomKey;
-  const isAdmin = role === 'ADMIN';
+  const { data: session, status: sessionStatus } = useSession();
+  const loggedIn = sessionStatus === 'authenticated';
+
+  // Role can come from session.user.role (current) or randomKey (legacy)
+  const role =
+    (session?.user as any)?.role ?? (session?.user as any)?.randomKey;
+  const isAdmin = loggedIn && role === 'ADMIN';
 
   const [items, setItems] = useState<AdminItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,8 +43,30 @@ export default function AdminItemManager() {
   }
 
   useEffect(() => {
-    if (isAdmin) load();
+    if (isAdmin) {
+      load();
+    }
   }, [isAdmin]);
+
+  // While NextAuth is figuring things out, don't flash "Access denied"
+  if (sessionStatus === 'loading') {
+    return (
+      <main className="container py-5">
+        <p>Checking your access…</p>
+      </main>
+    );
+  }
+
+  if (!loggedIn) {
+    return (
+      <main className="container py-5">
+        <h1 className="fw-bold mb-2">Sign in required</h1>
+        <p className="text-muted">
+          You must be signed in with an admin account to manage items.
+        </p>
+      </main>
+    );
+  }
 
   if (!isAdmin) {
     return (
@@ -78,10 +104,10 @@ export default function AdminItemManager() {
     'RECOVERED',
   ];
 
-  async function updateStatus(id: number, status: ItemStatus) {
+  async function updateStatus(id: number, newStatus: ItemStatus) {
     await fetch(`/api/items/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status: newStatus }),
     });
     load();
   }
@@ -93,7 +119,6 @@ export default function AdminItemManager() {
       {/* Filters */}
       <div className="card p-3 mb-4">
         <div className="row g-3">
-
           <div className="col-md-4">
             <label htmlFor="search" className="form-label fw-semibold">
               Search
@@ -146,7 +171,6 @@ export default function AdminItemManager() {
               ))}
             </select>
           </div>
-
         </div>
       </div>
 
