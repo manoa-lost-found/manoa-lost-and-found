@@ -193,12 +193,17 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                   <dd className="col-sm-8">{statusLabel(item.status)}</dd>
 
                   {item.locationName && (
-                    <>
-                      <dt className="col-sm-4 text-muted">
-                        Pickup / Turn-in Location
-                      </dt>
-                      <dd className="col-sm-8">{item.locationName}</dd>
-                    </>
+                    item.type === 'FOUND' ? (
+                      <>
+                        <dt className="col-sm-4 text-muted">Pickup / Turn-in Location</dt>
+                        <dd className="col-sm-8">{item.locationName}</dd>
+                      </>
+                    ) : (
+                      <>
+                        <dt className="col-sm-4 text-muted">Additional Details</dt>
+                        <dd className="col-sm-8">{item.locationName}</dd>
+                      </>
+                    )
                   )}
                 </dl>
 
