@@ -33,7 +33,11 @@ model User {
   // Relation to email verification tokens
   verificationTokens EmailVerificationToken[]
 
+  // Relation to lost/found items
   lostFoundItems LostFoundItem[]
+
+  // ids of LostFoundItem that user has already seen as "ready for pickup"
+  seenPickupItemIds Int[] @default([])
 }
 
 enum Condition {
