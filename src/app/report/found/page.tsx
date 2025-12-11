@@ -1,11 +1,11 @@
 'use client';
 
-/* eslint-disable no-alert, jsx-a11y/label-has-associated-control */
+/* eslint-disable jsx-a11y/label-has-associated-control */
 
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { BUILDINGS } from '@/data/buildings';
 import { CATEGORIES } from '@/data/categories';
 
@@ -17,8 +17,8 @@ type FoundFormData = {
   category: string;
   building: string;
   date: string;
-  locationName: string;
-  pickupLocation: string;
+  locationName: string; // extra detail (optional)
+  pickupLocation: string; // official location that gets saved
   imageFile: File | null;
   imagePreview: string | null;
 };
@@ -32,6 +32,61 @@ const PICKUP_LOCATIONS: string[] = [
   'Art Building (Main Office)',
 ];
 
+// AUTO-RESIZE IMAGE HELPER-
+function resizeImage(
+  file: File,
+  maxWidth = 1200,
+  maxHeight = 1200,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (ev) => {
+      if (typeof ev.target?.result !== 'string') {
+        reject(new Error('Invalid image data.'));
+        return;
+      }
+      img.src = ev.target.result;
+    };
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width *= ratio;
+        height *= ratio;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not get canvas context.'));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      resolve(dataUrl);
+    };
+
+    img.onerror = () => {
+      reject(new Error('Failed to load image.'));
+    };
+    reader.onerror = () => {
+      reject(new Error('Failed to read image file.'));
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+// MAIN COMPONENT
 export default function ReportFoundPage() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -49,6 +104,10 @@ export default function ReportFoundPage() {
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+
+  const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3 MB
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -60,8 +119,9 @@ export default function ReportFoundPage() {
     }));
   };
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+    setImageError(null);
 
     if (!file) {
       setFormData((prev) => ({
@@ -72,20 +132,40 @@ export default function ReportFoundPage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
+    if (file.size > MAX_FILE_SIZE) {
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: null,
+        imagePreview: null,
+      }));
+      setImageError('That image is too large. Please choose a file under 3 MB.');
+      return;
+    }
+
+    try {
+      const resized = await resizeImage(file, 1200, 1200);
       setFormData((prev) => ({
         ...prev,
         imageFile: file,
-        imagePreview: typeof reader.result === 'string' ? reader.result : null,
+        imagePreview: resized,
       }));
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: null,
+        imagePreview: null,
+      }));
+      setImageError('We could not process that image. Please try another file.');
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (submitting) return;
+
+    setFormError(null);
     setSubmitting(true);
 
     try {
@@ -111,9 +191,14 @@ export default function ReportFoundPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        // eslint-disable-next-line no-console
-        console.error('Failed to submit found item:', data);
-        alert(data?.error || 'Failed to submit found item.');
+
+        const message =
+          data?.error ||
+          (res.status === 413
+            ? 'Your image is too large for the server. Please upload a smaller photo.'
+            : 'Failed to submit your found item. Please try again.');
+
+        setFormError(message);
         setSubmitting(false);
         return;
       }
@@ -123,7 +208,9 @@ export default function ReportFoundPage() {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
-      alert('Something went wrong while submitting your report.');
+      setFormError(
+        'Something went wrong while submitting your report. If you attached a photo, try a smaller image.',
+      );
       setSubmitting(false);
     }
   };
@@ -145,16 +232,14 @@ export default function ReportFoundPage() {
             Help a fellow student get their belongings back by sharing where you turned it in.
           </p>
           <p className="text-muted small mb-0">
-            Not sure where to go? Use the
-            {' '}
+            Not sure where to go? Use the{' '}
             <a
               href="https://www.hawaii.edu/campusmap/"
               target="_blank"
               rel="noopener noreferrer"
             >
               UH Mānoa campus map
-            </a>
-            {' '}
+            </a>{' '}
             to find an official service desk or office.
           </p>
         </div>
@@ -170,6 +255,12 @@ export default function ReportFoundPage() {
           className="card border-0 shadow-sm rounded-4"
         >
           <div className="card-body p-4 p-md-5">
+            {formError && (
+              <div className="alert alert-danger mb-3" role="alert">
+                {formError}
+              </div>
+            )}
+
             <div className="row g-4">
               <div className="col-md-7">
                 <div className="mb-3">
@@ -324,6 +415,9 @@ export default function ReportFoundPage() {
                     Add a photo of the item if you can. Avoid showing sensitive details like
                     full ID numbers.
                   </p>
+                  {imageError && (
+                    <p className="text-danger small mb-0">{imageError}</p>
+                  )}
                 </div>
 
                 {formData.imagePreview && (
@@ -335,7 +429,7 @@ export default function ReportFoundPage() {
                         height: '220px',
                       }}
                     >
-                      <Image
+                      <NextImage
                         src={formData.imagePreview}
                         alt="Item preview"
                         fill
