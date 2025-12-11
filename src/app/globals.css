@@ -461,3 +461,50 @@ body {
     bottom: -0.3rem;
   }
 }
+
+/* Notification bell styling */
+.app-notification-btn {
+  padding: 0;
+}
+
+.app-bell-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.08),
+              0 4px 10px rgba(15, 118, 110, 0.1);
+}
+
+.app-bell-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  color: #f97316; /* warm orange to match alert vibe */
+}
+
+.app-bell-badge {
+  position: absolute;
+  top: -2px;          /* move it slightly down from the very top */
+  right: -4px;        /* pull it a bit outside the circle */
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background-color: #dc2626; /* red */
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-notification-btn:hover .app-bell-wrapper {
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.12),
+              0 6px 14px rgba(15, 118, 110, 0.18);
+}
+
