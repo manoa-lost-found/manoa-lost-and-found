@@ -465,6 +465,7 @@ body {
 /* Notification bell styling */
 .app-notification-btn {
   padding: 0;
+  margin-top: 3px;
 }
 
 .app-bell-wrapper {
@@ -507,4 +508,12 @@ body {
   box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.12),
               0 6px 14px rgba(15, 118, 110, 0.18);
 }
+
+/* Lower the bell a bit to align with the email dropdown */
+.navbar-nav-right .app-bell-button {
+  transform: translateY(3px); /* try 2–4px */
+  display: inline-flex;
+  align-items: center;
+}
+
 
