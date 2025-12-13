@@ -23,7 +23,8 @@ export default function RecoveryInstructionsPage() {
                 <section className="mb-3">
                   <h2 className="landing-left-eyebrow">1. Check your notifications</h2>
                   <p className="landing-copy">
-                    If someone finds an item matching your Lost report, you’ll receive a UH email.
+                    If someone finds an item matching your Lost report, you’ll receive a UH email as well as
+                    a notification saying your item is awaiting pickup.
                   </p>
                 </section>
 
@@ -80,7 +81,7 @@ export default function RecoveryInstructionsPage() {
                       <p className="landing-copy text-center mb-1">Mon–Fri • 8:00am–6:00pm</p>
                       <p className="landing-copy text-center mb-3">(808) 956-8178</p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=CC"
+                        href="https://maps.app.goo.gl/hEW3XmFWAia86PrNA"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -97,7 +98,7 @@ export default function RecoveryInstructionsPage() {
                       <p className="landing-copy text-center mb-1">Mon–Sat • 9:00am–5:00pm</p>
                       <p className="landing-copy text-center mb-3">(808) 956-7204</p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=HL"
+                        href="https://maps.app.goo.gl/p3yuyQgr2aZxk5Fn9"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -114,7 +115,7 @@ export default function RecoveryInstructionsPage() {
                       <p className="landing-copy text-center mb-1">Mon–Fri • 8:00am–5:00pm</p>
                       <p className="landing-copy text-center mb-3">(808) 956-8308</p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=SINCLAIR"
+                        href="https://maps.app.goo.gl/nKc2cikCcRjtiiiR8"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -131,7 +132,7 @@ export default function RecoveryInstructionsPage() {
                       <p className="landing-copy text-center mb-1">Mon–Fri • 8:30am–4:30pm</p>
                       <p className="landing-copy text-center mb-3">(808) 956-7366</p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=HEM"
+                        href="https://maps.app.goo.gl/tng3AdrihUwHfQbo8"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -148,7 +149,7 @@ export default function RecoveryInstructionsPage() {
                       <p className="landing-copy text-center mb-1">Mon–Fri • 8:00am–4:00pm</p>
                       <p className="landing-copy text-center mb-3">(808) 956-7480</p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=BIL"
+                        href="https://maps.app.goo.gl/PNt9nmruJXGVNdkb8"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -165,7 +166,7 @@ export default function RecoveryInstructionsPage() {
                       <p className="landing-copy text-center mb-1">Mon–Fri • 8:00am–4:00pm</p>
                       <p className="landing-copy text-center mb-3">(808) 956-8251</p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=ART"
+                        href="https://maps.app.goo.gl/AhFXzcaz5vWcb1McA"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
