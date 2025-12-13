@@ -93,7 +93,7 @@ export default function HomePage() {
 
               <div className="d-flex justify-content-center justify-content-lg-start mt-3">
                 <Link href="/auth/signin" className="btn landing-cta-btn">
-                  Login with UH SSO
+                  Log In with UH SSO
                 </Link>
               </div>
             </div>
