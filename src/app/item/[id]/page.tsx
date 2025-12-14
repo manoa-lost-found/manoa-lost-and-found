@@ -53,8 +53,11 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
 
   const numericId = Number(params.id);
   const currentUserId = Number((session?.user as any)?.id);
-  const role = (session?.user as any)?.randomKey;
+
+  const role =
+  (session?.user as any)?.role ?? (session?.user as any)?.randomKey;
   const isAdmin = role === 'ADMIN';
+
   const isOwner = item && currentUserId && item.ownerId === currentUserId;
 
   useEffect(() => {

@@ -17,8 +17,8 @@ export type FeedItem = {
   imageUrl?: string | null;
   category: string;
   building: string;
-  term: string; // e.g. 'Fall 2025'
-  date: string; // 'YYYY-MM-DD' (lost/found date)
+  term: string;
+  date: string;
   locationName?: string | null;
   pickupLocation?: string | null;
   ownerEmail: string;
@@ -34,47 +34,77 @@ function getUhAcademicTerm(date: Date): string {
   return `Summer ${year}`;
 }
 
+function toFeedItem(item: any): FeedItem {
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    type: item.type as ItemType,
+    status: item.status as ItemStatus,
+    category: item.category,
+    building: item.building,
+    term: item.term,
+    date: item.date.toISOString().slice(0, 10),
+    imageUrl: item.imageUrl,
+    locationName: item.locationName,
+    pickupLocation: item.pickupLocation ?? null,
+    ownerEmail: item.owner?.email ?? '',
+    ownerId: item.ownerId,
+  };
+}
+
 // GET /api/items?take=12&cursor=123&sort=NEWEST|OLDEST
+// Admin-only: /api/items?all=1 (returns ALL items)
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
 
+    const sort = (searchParams.get('sort') ?? 'NEWEST').toUpperCase();
+    const orderDirection = sort === 'OLDEST' ? 'asc' : 'desc';
+
+    const all = searchParams.get('all') === '1';
+
+    // Pagination defaults for public/feed usage
     const takeRaw = Number(searchParams.get('take') ?? '12');
     const cursorRaw = searchParams.get('cursor');
-    const sort = (searchParams.get('sort') ?? 'NEWEST').toUpperCase();
-
     const take = Number.isFinite(takeRaw) ? Math.max(1, Math.min(takeRaw, 50)) : 12;
     const cursor = cursorRaw ? Number(cursorRaw) : null;
 
-    const orderDirection = sort === 'OLDEST' ? 'asc' : 'desc';
+    // If asking for all, require admin
+    if (all) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.email) {
+        return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      }
 
+      const dbUser = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      });
+
+      if (!dbUser || dbUser.role !== 'ADMIN') {
+        return NextResponse.json({ error: 'Admins only' }, { status: 403 });
+      }
+
+      const items = await prisma.lostFoundItem.findMany({
+        orderBy: [{ date: orderDirection }, { id: orderDirection }],
+        include: { owner: true },
+      });
+
+      return NextResponse.json(
+        { items: items.map(toFeedItem), nextCursor: null },
+        { status: 200 },
+      );
+    }
+
+    // Normal feed/paginated behavior
     const items = await prisma.lostFoundItem.findMany({
       take,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-      orderBy: [
-        { date: orderDirection },
-        { id: orderDirection },
-      ],
+      orderBy: [{ date: orderDirection }, { id: orderDirection }],
       include: { owner: true },
     });
 
-    const feedItems: FeedItem[] = items.map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      type: item.type as ItemType,
-      status: item.status as ItemStatus,
-      category: item.category,
-      building: item.building,
-      term: item.term,
-      date: item.date.toISOString().slice(0, 10),
-      imageUrl: item.imageUrl,
-      locationName: item.locationName,
-      pickupLocation: item.pickupLocation ?? null,
-      ownerEmail: item.owner.email,
-      ownerId: item.ownerId,
-    }));
-
+    const feedItems = items.map(toFeedItem);
     const nextCursor = items.length === take ? items[items.length - 1].id : null;
 
     return NextResponse.json({ items: feedItems, nextCursor }, { status: 200 });
@@ -151,24 +181,7 @@ export async function POST(req: NextRequest) {
       include: { owner: true },
     });
 
-    const responseItem: FeedItem = {
-      id: created.id,
-      title: created.title,
-      description: created.description,
-      type: created.type as ItemType,
-      status: created.status as ItemStatus,
-      category: created.category,
-      building: created.building,
-      term: created.term,
-      date: created.date.toISOString().slice(0, 10),
-      imageUrl: created.imageUrl,
-      locationName: created.locationName,
-      pickupLocation: created.pickupLocation ?? null,
-      ownerEmail: created.owner.email,
-      ownerId: created.ownerId,
-    };
-
-    return NextResponse.json({ item: responseItem }, { status: 201 });
+    return NextResponse.json({ item: toFeedItem(created) }, { status: 201 });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Error in POST /api/items:', err);

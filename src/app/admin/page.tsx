@@ -15,7 +15,8 @@ export default function AdminPage() {
   }
 
   // REAL role field
-  const role = (session?.user as any)?.role;
+  const role =
+  (session?.user as any)?.role ?? (session?.user as any)?.randomKey;
   const isAdmin = role === 'ADMIN';
 
   if (!isAdmin) {

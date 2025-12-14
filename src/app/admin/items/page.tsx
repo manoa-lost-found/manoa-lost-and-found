@@ -34,7 +34,7 @@ export default function AdminItemManager() {
   const [search, setSearch] = useState('');
 
   async function load() {
-    const res = await fetch('/api/items');
+    const res = await fetch('/api/items?all=1', { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       setItems(data.items);
@@ -107,8 +107,10 @@ export default function AdminItemManager() {
   async function updateStatus(id: number, newStatus: ItemStatus) {
     await fetch(`/api/items/${id}`, {
       method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
     });
+
     load();
   }
 
@@ -230,12 +232,28 @@ export default function AdminItemManager() {
                     Edit
                   </Link>
 
-                  <Link
-                    href={`/item/${item.id}`}
+                  <button
+                    type="button"
                     className="btn btn-danger btn-sm"
+                    aria-label={`Delete ${item.title}`}
+                    onClick={async () => {
+                      // eslint-disable-next-line no-alert
+                      const ok = window.confirm(`Delete "${item.title}"?`);
+                      if (!ok) return;
+
+                      const res = await fetch(`/api/items/${item.id}`, { method: 'DELETE' });
+                      if (!res.ok) {
+                        // optionally show a toast/state error instead
+                        // eslint-disable-next-line no-alert
+                        window.alert('Failed to delete item.');
+                        return;
+                      }
+
+                      load();
+                    }}
                   >
                     Delete
-                  </Link>
+                  </button>
                 </div>
               </div>
             );

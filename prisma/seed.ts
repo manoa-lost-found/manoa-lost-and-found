@@ -9,14 +9,19 @@ async function main() {
 
   const passwordHash = await hash('changeme', 10);
 
+  // Seed accounts from config (deterministic: updates password/role/emailVerified too)
   for (const account of config.defaultAccounts) {
     const role = (account.role as Role) || Role.USER;
 
-    console.log(`  Creating user from config: ${account.email} (${role})`);
+    console.log(`  Upserting user from config: ${account.email} (${role})`);
 
     await prisma.user.upsert({
       where: { email: account.email },
-      update: {},
+      update: {
+        password: passwordHash,
+        role,
+        emailVerified: new Date(),
+      },
       create: {
         email: account.email,
         password: passwordHash,
@@ -28,9 +33,14 @@ async function main() {
 
   console.log('  Creating Playwright test users…');
 
+  // Playwright USER
   await prisma.user.upsert({
     where: { email: 'john@hawaii.edu' },
-    update: {},
+    update: {
+      password: passwordHash,
+      role: Role.USER,
+      emailVerified: new Date(),
+    },
     create: {
       email: 'john@hawaii.edu',
       password: passwordHash,
@@ -39,9 +49,14 @@ async function main() {
     },
   });
 
+  // Playwright ADMIN
   await prisma.user.upsert({
     where: { email: 'admin@hawaii.edu' },
-    update: {},
+    update: {
+      password: passwordHash,
+      role: Role.ADMIN,
+      emailVerified: new Date(),
+    },
     create: {
       email: 'admin@hawaii.edu',
       password: passwordHash,
@@ -50,16 +65,24 @@ async function main() {
     },
   });
 
-  for (const data of config.defaultData) {
+  // Seed default Stuff data (clean index usage)
+  for (let i = 0; i < config.defaultData.length; i += 1) {
+    const data = config.defaultData[i];
     const condition = (data.condition as Condition) || Condition.good;
-    const index = config.defaultData.indexOf(data) + 1;
+    const id = i + 1;
 
-    console.log(`  Adding Stuff item: ${data.name}`);
+    console.log(`  Upserting Stuff item: ${data.name}`);
 
     await prisma.stuff.upsert({
-      where: { id: index },
-      update: {},
+      where: { id },
+      update: {
+        name: data.name,
+        quantity: data.quantity,
+        owner: data.owner,
+        condition,
+      },
       create: {
+        id, // optional, but makes it deterministic
         name: data.name,
         quantity: data.quantity,
         owner: data.owner,
