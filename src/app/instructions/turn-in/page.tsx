@@ -118,7 +118,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-8178
                       </p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=CC"
+                        href="https://maps.app.goo.gl/hEW3XmFWAia86PrNA"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -141,7 +141,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-7204
                       </p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=HL"
+                        href="https://maps.app.goo.gl/p3yuyQgr2aZxk5Fn9"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -164,7 +164,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-2586
                       </p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=SINCLAIR"
+                        href="https://maps.app.goo.gl/nKc2cikCcRjtiiiR8"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -187,7 +187,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-4642
                       </p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=HEM"
+                        href="https://maps.app.goo.gl/tng3AdrihUwHfQbo8"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -210,7 +210,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-7480
                       </p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=BIL"
+                        href="https://maps.app.goo.gl/PNt9nmruJXGVNdkb8"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"
@@ -233,7 +233,7 @@ export default function TurnInInstructionsPage() {
                         (808) 956-8251
                       </p>
                       <a
-                        href="https://map.hawaii.edu/manoa/?bld=ART"
+                        href="https://maps.app.goo.gl/AhFXzcaz5vWcb1McA"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="landing-cta-btn"

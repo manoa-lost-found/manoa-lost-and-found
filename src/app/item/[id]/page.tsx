@@ -23,6 +23,7 @@ type DetailItem = {
   imageUrl?: string | null;
   locationName?: string | null;
   ownerId?: number;
+  pickupLocation?: string | null;
 };
 
 function statusLabel(status: ItemStatus) {
@@ -52,8 +53,11 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
 
   const numericId = Number(params.id);
   const currentUserId = Number((session?.user as any)?.id);
-  const role = (session?.user as any)?.randomKey;
+
+  const role =
+  (session?.user as any)?.role ?? (session?.user as any)?.randomKey;
   const isAdmin = role === 'ADMIN';
+
   const isOwner = item && currentUserId && item.ownerId === currentUserId;
 
   useEffect(() => {
@@ -191,6 +195,13 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
 
                   <dt className="col-sm-4 text-muted">Status</dt>
                   <dd className="col-sm-8">{statusLabel(item.status)}</dd>
+
+                  {item.type === 'LOST' && item.pickupLocation && (
+                  <>
+                    <dt className="col-sm-4 text-muted">Preferred Pickup Location</dt>
+                    <dd className="col-sm-8">{item.pickupLocation}</dd>
+                  </>
+                  )}
 
                   {item.locationName && (
                     item.type === 'FOUND' ? (

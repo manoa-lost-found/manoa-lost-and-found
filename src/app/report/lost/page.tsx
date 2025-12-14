@@ -11,6 +11,15 @@ import { CATEGORIES } from '@/data/categories';
 
 type ItemType = 'LOST' | 'FOUND';
 
+const PICKUP_LOCATIONS = [
+  'Campus Center (Information Desk)',
+  'Hamilton Library (Front Desk)',
+  'Sinclair Library (Service Desk)',
+  'Hemenway Hall (Student Services)',
+  'Bilger Hall (Department Office)',
+  'Art Building (Main Office)',
+] as const;
+
 // AUTO-RESIZE IMAGE HELPER
 function resizeImage(
   file: File,
@@ -74,6 +83,7 @@ type LostFormData = {
   building: string;
   date: string;
   locationName: string;
+  pickupLocation: string;
   imageFile: File | null;
   imagePreview: string | null;
 };
@@ -90,6 +100,7 @@ export default function ReportLostPage() {
     building: '',
     date: '',
     locationName: '',
+    pickupLocation: '',
     imageFile: null,
     imagePreview: null,
   });
@@ -169,7 +180,8 @@ export default function ReportLostPage() {
         building: formData.building,
         date: formData.date,
         locationName: formData.locationName.trim() || null,
-        imageUrl: formData.imagePreview, // resized image
+        pickupLocation: formData.pickupLocation || null, // ✅ keep only this
+        imageUrl: formData.imagePreview,
       };
 
       const res = await fetch('/api/items', {
@@ -352,6 +364,29 @@ export default function ReportLostPage() {
                       value={formData.locationName}
                       onChange={handleInputChange}
                     />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label htmlFor="pickupLocation" className="form-label fw-semibold">
+                      Preferred pickup location
+                    </label>
+                    <select
+                      id="pickupLocation"
+                      name="pickupLocation"
+                      className="form-select"
+                      value={formData.pickupLocation}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Select a building</option>
+                      {PICKUP_LOCATIONS.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="form-text mb-0">
+                      Choose an official spot on campus to meet if someone finds your item.
+                    </p>
                   </div>
                 </div>
               </div>

@@ -12,9 +12,13 @@ type UserRecord = {
 };
 
 export default function AdminUsersPage() {
-  const { data: session } = useSession();
-  const role = (session?.user as any)?.randomKey;
-  const isAdmin = role === 'ADMIN';
+  const { data: session, status: sessionStatus } = useSession();
+  const loggedIn = sessionStatus === 'authenticated';
+
+  // Role comes from session.user.role (fallback to randomKey for older code)
+  const role =
+    (session?.user as any)?.role ?? (session?.user as any)?.randomKey;
+  const isAdmin = loggedIn && role === 'ADMIN';
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,8 +33,30 @@ export default function AdminUsersPage() {
   }
 
   useEffect(() => {
-    if (isAdmin) load();
+    if (isAdmin) {
+      load();
+    }
   }, [isAdmin]);
+
+  // Don’t flash "access denied" while session is still loading
+  if (sessionStatus === 'loading') {
+    return (
+      <main className="container py-5">
+        <p>Checking your access…</p>
+      </main>
+    );
+  }
+
+  if (!loggedIn) {
+    return (
+      <main className="container py-5">
+        <h1 className="fw-bold mb-2">Sign in required</h1>
+        <p className="text-muted">
+          You must be signed in with an admin account to view user accounts.
+        </p>
+      </main>
+    );
+  }
 
   if (!isAdmin) {
     return (
@@ -49,7 +75,6 @@ export default function AdminUsersPage() {
     );
   }
 
-  // 👇 FIXED (renamed role → userRole)
   function getRoleBadgeClass(userRole: string) {
     if (userRole === 'ADMIN') return 'badge bg-danger';
     if (userRole === 'DISABLED') return 'badge bg-dark';
@@ -146,7 +171,6 @@ export default function AdminUsersPage() {
                     >
                       Restore
                     </button>
-
                   </div>
                 </td>
               </tr>

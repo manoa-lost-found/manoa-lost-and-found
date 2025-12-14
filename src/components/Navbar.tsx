@@ -1,25 +1,101 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+
+type PickupNotification = {
+  id: number;
+  itemId: number;
+  title: string;
+  status: string;
+  updatedAt: string;
+  seen: boolean; // NEW
+};
 
 export default function Navbar() {
   const { data: session, status } = useSession();
   const loggedIn = status === 'authenticated';
   const pathname = usePathname();
 
-  // Role comes from authOptions: randomKey = user.role
-  const role = (session?.user as any)?.randomKey;
+  console.log('SESSION DEBUG', session);
+
+  const role =
+    (session?.user as any)?.role ?? (session?.user as any)?.randomKey;
   const isAdmin = role === 'ADMIN';
+
+  console.log('NAVBAR ROLE DEBUG', { role, isAdmin });
+
+  const [pickupNotifications, setPickupNotifications] = useState<PickupNotification[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+
+  // Fetch notifications for items marked "waiting for pickup"
+  useEffect(() => {
+    async function loadNotifications() {
+      try {
+        setNotifLoading(true);
+        const res = await fetch('/api/notifications/pickup');
+        if (!res.ok) {
+          // eslint-disable-next-line no-console
+          console.error('Failed to load notifications');
+          return;
+        }
+        const data = await res.json();
+        setPickupNotifications(data.notifications ?? []);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(err);
+      } finally {
+        setNotifLoading(false);
+      }
+    }
+
+    if (loggedIn) {
+      loadNotifications();
+    } else {
+      setPickupNotifications([]);
+    }
+  }, [loggedIn, session]);
+
+  const unreadCount = pickupNotifications.filter((n) => !n.seen).length;
+
+  const handleBellClick = async () => {
+    if (pickupNotifications.length === 0) return;
+
+    const itemIds = pickupNotifications.map((n) => n.itemId);
+
+    // Optimistic update: mark as seen locally
+    setPickupNotifications((prev) =>
+      prev.map((n) => ({ ...n, seen: true })));
+
+    try {
+      await fetch('/api/notifications/mark-seen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds }),
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      // (optional) roll back if you want, but probably not necessary for this project
+    }
+  };
+
+  // No nested ternaries: compute header text here
+  let notificationHeader = 'Items ready for pickup:';
+  if (notifLoading) {
+    notificationHeader = 'Checking notifications…';
+  } else if (unreadCount === 0) {
+    notificationHeader = 'No items ready for pickup yet.';
+  }
 
   const MAIN_LINKS = loggedIn
     ? [
       { href: '/', label: 'Home' },
       { href: '/faq', label: 'FAQ' },
       { href: '/list', label: 'Items Feed' },
-      // My Dashboard removed from here; now lives in dropdown
       { href: '/report/lost', label: 'Report Lost' },
       { href: '/report/found', label: 'Report Found' },
     ]
@@ -72,8 +148,80 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* Right side: account dropdown (+ Admin button if admin) */}
+          {/* Right side: notification bell + account dropdown + Admin */}
           <ul className="navbar-nav align-items-center navbar-nav-right">
+            {loggedIn && (
+              <li className="nav-item dropdown me-2">
+                <button
+                  type="button"
+                  className="nav-link bg-transparent border-0 p-0 app-bell-button"
+                  id="notificationsDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  onClick={handleBellClick}
+                >
+                  <span className="position-relative d-inline-flex">
+                    <Image
+                      src="/icons/bell-solid.svg"
+                      width={22}
+                      height={22}
+                      alt="Notifications"
+                      className="app-bell-icon"
+                    />
+
+                    {unreadCount > 0 && (
+                      <span className="app-bell-badge">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </span>
+                </button>
+
+                <ul
+                  className="dropdown-menu dropdown-menu-end"
+                  aria-labelledby="notificationsDropdown"
+                  style={{ minWidth: '260px' }}
+                >
+                  <li className="dropdown-header small text-muted">
+                    {notificationHeader}
+                  </li>
+
+                  {!notifLoading &&
+                    pickupNotifications.map((n) => (
+                      <li key={n.id}>
+                        <Link
+                          href={`/item/${n.itemId}`}
+                          className="dropdown-item small"
+                        >
+                          <div className="fw-semibold">{n.title}</div>
+                          <div className="text-muted">
+                            Status:
+                            {' '}
+                            {n.status}
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+
+                  {!notifLoading && unreadCount > 0 && (
+                    <>
+                      <li>
+                        <hr className="dropdown-divider" />
+                      </li>
+                      <li>
+                        <Link
+                          href="/dashboard"
+                          className="dropdown-item small text-center"
+                        >
+                          View all my items
+                        </Link>
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </li>
+            )}
+
             {!loggedIn ? (
               <li className="nav-item">
                 <Link href="/auth/signin" className="btn app-login-btn">
@@ -82,7 +230,6 @@ export default function Navbar() {
               </li>
             ) : (
               <>
-                {/* Account dropdown */}
                 <li className="nav-item dropdown">
                   <button
                     type="button"
@@ -93,14 +240,18 @@ export default function Navbar() {
                   >
                     {session?.user?.email ?? 'Account'}
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                    {/* My Dashboard inside dropdown */}
+                  <ul
+                    className="dropdown-menu dropdown-menu-end"
+                    aria-labelledby="userDropdown"
+                  >
                     <li>
                       <Link href="/dashboard" className="dropdown-item">
                         My Dashboard
                       </Link>
                     </li>
-                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <hr className="dropdown-divider" />
+                    </li>
                     <li>
                       <button
                         type="button"
@@ -113,7 +264,6 @@ export default function Navbar() {
                   </ul>
                 </li>
 
-                {/* Admin button to the RIGHT of the email dropdown */}
                 {isAdmin && (
                   <li className="nav-item ms-2">
                     <Link href="/admin" className="btn btn-outline-secondary btn-sm">
