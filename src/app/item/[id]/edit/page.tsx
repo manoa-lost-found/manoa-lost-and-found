@@ -26,6 +26,7 @@ type EditItem = {
   building: string;
   date: string; // YYYY-MM-DD
   locationName?: string | null;
+  pickupLocation?: string | null;
   imageUrl?: string | null;
 };
 
@@ -35,11 +36,16 @@ type EditFormData = {
   category: string;
   building: string;
   date: string;
-  // For LOST: extra location details
-  // For FOUND: not persisted yet, but can be used later
+
+  // LOST: extra location details (stored in locationName)
   locationDetails: string;
-  // For FOUND: official pickup / turn-in location
-  pickupLocation: string;
+
+  // FOUND: official pickup / turn-in location (stored in locationName)
+  foundPickupLocation: string;
+
+  // LOST: preferred pickup location (stored in pickupLocation)
+  preferredPickupLocation: string;
+
   imageFile: File | null;
   imagePreview: string | null;
 };
@@ -91,6 +97,7 @@ export default function EditItemPage({ params }: { params: { id: string } }) {
           building: it.building,
           date: it.date,
           locationName: it.locationName ?? null,
+          pickupLocation: (it as any).pickupLocation ?? null,
           imageUrl: it.imageUrl ?? null,
         };
 
@@ -102,8 +109,11 @@ export default function EditItemPage({ params }: { params: { id: string } }) {
           category: it.category ?? '',
           building: it.building ?? '',
           date: it.date ?? '',
+
           locationDetails: isFound ? '' : it.locationName ?? '',
-          pickupLocation: isFound ? it.locationName ?? '' : '',
+          foundPickupLocation: isFound ? it.locationName ?? '' : '',
+          preferredPickupLocation: !isFound ? ((it as any).pickupLocation ?? '') : '',
+
           imageFile: null,
           imagePreview: it.imageUrl ?? null,
         };
@@ -186,11 +196,19 @@ export default function EditItemPage({ params }: { params: { id: string } }) {
         building: formData.building,
         date: formData.date,
         status: item.status,
-        // For LOST: extra location detail
-        // For FOUND: official pickup location
+
+        // locationName stays your existing meaning:
+        // - LOST: extra location detail
+        // - FOUND: official pickup / turn-in location
         locationName: isLost
           ? formData.locationDetails.trim() || null
-          : formData.pickupLocation,
+          : formData.foundPickupLocation,
+
+        // LOST preferred pickup location stored on pickupLocation
+        pickupLocation: isLost
+          ? (formData.preferredPickupLocation || null)
+          : null,
+
         imageUrl: formData.imagePreview,
       };
 
@@ -403,20 +421,46 @@ export default function EditItemPage({ params }: { params: { id: string } }) {
                         value={formData.locationDetails}
                         onChange={handleInputChange}
                       />
+
+                      <div className="mt-3">
+                        <label
+                          htmlFor="preferredPickupLocation"
+                          className="form-label fw-semibold"
+                        >
+                          Preferred pickup location (optional)
+                        </label>
+                        <select
+                          id="preferredPickupLocation"
+                          name="preferredPickupLocation"
+                          className="form-select"
+                          value={formData.preferredPickupLocation}
+                          onChange={handleInputChange}
+                        >
+                          <option value="">Select a pickup location</option>
+                          {PICKUP_LOCATIONS.map((loc) => (
+                            <option key={loc} value={loc}>
+                              {loc}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="form-text mb-0">
+                          Choose an official spot on campus where you’d prefer to meet if someone finds your item.
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <div className="col-md-6">
                       <label
-                        htmlFor="pickupLocation"
+                        htmlFor="foundPickupLocation"
                         className="form-label fw-semibold"
                       >
                         Turn-in / pickup location *
                       </label>
                       <select
-                        id="pickupLocation"
-                        name="pickupLocation"
+                        id="foundPickupLocation"
+                        name="foundPickupLocation"
                         className="form-select"
-                        value={formData.pickupLocation}
+                        value={formData.foundPickupLocation}
                         onChange={handleInputChange}
                         required
                       >

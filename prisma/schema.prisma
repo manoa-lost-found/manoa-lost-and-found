@@ -80,17 +80,18 @@ enum LostFoundStatus {
 }
 
 model LostFoundItem {
-  id           Int             @id @default(autoincrement())
-  title        String
-  description  String
-  type         LostFoundType
-  status       LostFoundStatus @default(OPEN)
-  imageUrl     String?
-  category     String
-  building     String
-  term         String
-  date         DateTime
-  locationName String?
+  id              Int             @id @default(autoincrement())
+  title           String
+  description     String
+  type            LostFoundType
+  status          LostFoundStatus @default(OPEN)
+  imageUrl        String?
+  category        String
+  building        String
+  term            String
+  date            DateTime
+  locationName    String?
+  pickupLocation  String?
 
   owner   User @relation(fields: [ownerId], references: [id])
   ownerId Int

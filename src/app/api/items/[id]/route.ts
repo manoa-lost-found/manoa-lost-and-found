@@ -19,6 +19,9 @@ function toResponseItem(item: any) {
     date: item.date.toISOString().slice(0, 10),
     imageUrl: item.imageUrl,
     locationName: item.locationName,
+
+    pickupLocation: item.pickupLocation ?? null,
+
     ownerId: item.ownerId,
   };
 }
@@ -90,7 +93,15 @@ export async function PUT(
     data.locationName = body.locationName || null;
   }
 
-  // ⭐ Fixed ESLint operator-linebreak rule ⭐
+  // pickupLocation support
+  if (body.pickupLocation !== undefined) {
+    // Only LOST items should have pickupLocation; clear it otherwise
+    data.pickupLocation = existing.type === 'LOST'
+      ? (body.pickupLocation || null)
+      : null;
+  }
+
+  // Fixed ESLint operator-linebreak rule
   if (
     body.status
     && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)
@@ -98,7 +109,7 @@ export async function PUT(
     data.status = body.status as LostFoundStatus;
   }
 
-  // ⭐ Image editing support
+  // Image editing support
   if (body.imageUrl !== undefined) {
     data.imageUrl = body.imageUrl || null;
   }

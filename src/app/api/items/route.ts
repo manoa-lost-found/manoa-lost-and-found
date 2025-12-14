@@ -20,6 +20,9 @@ export type FeedItem = {
   term: string; // e.g. 'Fall 2025'
   date: string; // 'YYYY-MM-DD'
   locationName?: string | null;
+
+  pickupLocation?: string | null; // ✅ NEW
+
   ownerEmail: string;
   ownerId?: number;
 };
@@ -62,6 +65,9 @@ export async function GET() {
       date: item.date.toISOString().slice(0, 10),
       imageUrl: item.imageUrl,
       locationName: item.locationName,
+
+      pickupLocation: item.pickupLocation ?? null, // ✅ NEW
+
       ownerEmail: item.owner.email,
       ownerId: item.ownerId,
     }));
@@ -141,6 +147,9 @@ export async function POST(req: NextRequest) {
     // Derive UH term from the date
     const term = getUhAcademicTerm(dateValue);
 
+    const pickupLocation =
+      type === LostFoundType.LOST ? (body.pickupLocation ?? null) : null;
+
     const created = await prisma.lostFoundItem.create({
       data: {
         title: String(body.title),
@@ -153,6 +162,9 @@ export async function POST(req: NextRequest) {
         date: dateValue,
         imageUrl: body.imageUrl ?? null,
         locationName: body.locationName ?? null,
+
+        pickupLocation, // ✅ NEW
+
         ownerId: user.id,
       },
       include: { owner: true },
@@ -170,6 +182,9 @@ export async function POST(req: NextRequest) {
       date: created.date.toISOString().slice(0, 10),
       imageUrl: created.imageUrl,
       locationName: created.locationName,
+
+      pickupLocation: created.pickupLocation ?? null, // ✅ NEW
+
       ownerEmail: created.owner.email,
       ownerId: created.ownerId,
     };

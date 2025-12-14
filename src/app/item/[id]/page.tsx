@@ -23,6 +23,7 @@ type DetailItem = {
   imageUrl?: string | null;
   locationName?: string | null;
   ownerId?: number;
+  pickupLocation?: string | null;
 };
 
 function statusLabel(status: ItemStatus) {
@@ -191,6 +192,13 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
 
                   <dt className="col-sm-4 text-muted">Status</dt>
                   <dd className="col-sm-8">{statusLabel(item.status)}</dd>
+
+                  {item.type === 'LOST' && item.pickupLocation && (
+                  <>
+                    <dt className="col-sm-4 text-muted">Preferred Pickup Location</dt>
+                    <dd className="col-sm-8">{item.pickupLocation}</dd>
+                  </>
+                  )}
 
                   {item.locationName && (
                     item.type === 'FOUND' ? (
