@@ -18,38 +18,43 @@ export type FeedItem = {
   category: string;
   building: string;
   term: string; // e.g. 'Fall 2025'
-  date: string; // 'YYYY-MM-DD'
+  date: string; // 'YYYY-MM-DD' (lost/found date)
   locationName?: string | null;
-
-  pickupLocation?: string | null; // ✅ NEW
-
+  pickupLocation?: string | null;
   ownerEmail: string;
   ownerId?: number;
 };
 
-/**
- * Given a date, compute the UH-style academic term string.
- * Fall runs roughly Aug–Dec, Spring Jan–May, Summer Jun–Jul.
- */
 function getUhAcademicTerm(date: Date): string {
   const year = date.getFullYear();
-  const month = date.getMonth() + 1; // 1–12
+  const month = date.getMonth() + 1;
 
-  if (month >= 8 && month <= 12) {
-    return `Fall ${year}`;
-  }
-  if (month >= 1 && month <= 5) {
-    return `Spring ${year}`;
-  }
-  // Everything else treated as Summer
+  if (month >= 8 && month <= 12) return `Fall ${year}`;
+  if (month >= 1 && month <= 5) return `Spring ${year}`;
   return `Summer ${year}`;
 }
 
-// GET all items for the public feed
-export async function GET() {
+// GET /api/items?take=12&cursor=123&sort=NEWEST|OLDEST
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+
+    const takeRaw = Number(searchParams.get('take') ?? '12');
+    const cursorRaw = searchParams.get('cursor');
+    const sort = (searchParams.get('sort') ?? 'NEWEST').toUpperCase();
+
+    const take = Number.isFinite(takeRaw) ? Math.max(1, Math.min(takeRaw, 50)) : 12;
+    const cursor = cursorRaw ? Number(cursorRaw) : null;
+
+    const orderDirection = sort === 'OLDEST' ? 'asc' : 'desc';
+
     const items = await prisma.lostFoundItem.findMany({
-      orderBy: { createdAt: 'desc' },
+      take,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      orderBy: [
+        { date: orderDirection },
+        { id: orderDirection },
+      ],
       include: { owner: true },
     });
 
@@ -65,25 +70,22 @@ export async function GET() {
       date: item.date.toISOString().slice(0, 10),
       imageUrl: item.imageUrl,
       locationName: item.locationName,
-
-      pickupLocation: item.pickupLocation ?? null, // ✅ NEW
-
+      pickupLocation: item.pickupLocation ?? null,
       ownerEmail: item.owner.email,
       ownerId: item.ownerId,
     }));
 
-    return NextResponse.json({ items: feedItems }, { status: 200 });
+    const nextCursor = items.length === take ? items[items.length - 1].id : null;
+
+    return NextResponse.json({ items: feedItems, nextCursor }, { status: 200 });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Error in GET /api/items:', err);
-    return NextResponse.json(
-      { error: 'Failed to load items.' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Failed to load items.' }, { status: 500 });
   }
 }
 
-// POST a new lost/found item (must be logged in)
+// POST /api/items
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -97,42 +99,25 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    // Basic validation – required fields
-    if (
-      !body.title
-      || !body.description
-      || !body.type
-      || !body.category
-      || !body.building
-    ) {
-      return NextResponse.json(
-        { error: 'Missing required fields.' },
-        { status: 400 },
-      );
+    if (!body.title || !body.description || !body.type || !body.category || !body.building) {
+      return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
-    // Find the user in the DB based on the session email
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found.' },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
     }
 
-    // Normalize type
-    const type: LostFoundType = body.type === 'FOUND'
-      ? LostFoundType.FOUND
-      : LostFoundType.LOST;
+    const type: LostFoundType =
+      body.type === 'FOUND' ? LostFoundType.FOUND : LostFoundType.LOST;
 
-    // Determine status (same logic as before, with Prisma enum)
     let status: LostFoundStatus;
     if (
-      body.status
-      && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)
+      body.status &&
+      ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)
     ) {
       status = body.status as LostFoundStatus;
     } else if (type === LostFoundType.LOST) {
@@ -143,8 +128,6 @@ export async function POST(req: NextRequest) {
 
     const now = new Date();
     const dateValue = body.date ? new Date(body.date) : now;
-
-    // Derive UH term from the date
     const term = getUhAcademicTerm(dateValue);
 
     const pickupLocation =
@@ -162,9 +145,7 @@ export async function POST(req: NextRequest) {
         date: dateValue,
         imageUrl: body.imageUrl ?? null,
         locationName: body.locationName ?? null,
-
-        pickupLocation, // ✅ NEW
-
+        pickupLocation,
         ownerId: user.id,
       },
       include: { owner: true },
@@ -182,9 +163,7 @@ export async function POST(req: NextRequest) {
       date: created.date.toISOString().slice(0, 10),
       imageUrl: created.imageUrl,
       locationName: created.locationName,
-
-      pickupLocation: created.pickupLocation ?? null, // ✅ NEW
-
+      pickupLocation: created.pickupLocation ?? null,
       ownerEmail: created.owner.email,
       ownerId: created.ownerId,
     };
@@ -193,9 +172,6 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Error in POST /api/items:', err);
-    return NextResponse.json(
-      { error: 'Failed to create item.' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Failed to create item.' }, { status: 500 });
   }
 }

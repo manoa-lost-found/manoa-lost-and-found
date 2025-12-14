@@ -22,12 +22,19 @@ type FeedItem = {
   category: string;
   building: string;
   term: string;
-  date: string; // lost/found date (YYYY-MM-DD)
-  createdAt: string; // ✅ posted date for stable pagination/sorting
+  date: string; // YYYY-MM-DD (lost/found date)
   locationName?: string | null;
 };
 
 type SortOrder = 'NEWEST' | 'OLDEST';
+
+const PAGE_SIZE = 12;
+
+const pageStyle: React.CSSProperties = {
+  background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
+  minHeight: 'calc(100vh - 64px)',
+  padding: '3.5rem 0 4rem',
+};
 
 function statusBadgeClass(status: ItemStatus): string {
   switch (status) {
@@ -49,14 +56,10 @@ function typeLabel(type: ItemType): string {
 }
 
 export default function LostFoundFeedPage() {
-  const PAGE_SIZE = 12;
-
-  // state
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [nextCursor, setNextCursor] = useState<number | null>(null);
 
   const [search, setSearch] = useState('');
@@ -65,33 +68,45 @@ export default function LostFoundFeedPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('NEWEST');
 
-  // session hook
   const { data: session, status } = useSession();
 
-  // Load first page once authenticated
+  const fetchPage = async (opts: { cursor?: number | null; reset?: boolean } = {}) => {
+    const cursorPart = opts.cursor ? `&cursor=${opts.cursor}` : '';
+    const url = `/api/items?take=${PAGE_SIZE}${cursorPart}&sort=${sortOrder}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to load items.');
+
+    const data = await res.json();
+    const newItems = (data.items ?? []) as FeedItem[];
+
+    setNextCursor(data.nextCursor ?? null);
+
+    if (opts.reset) {
+      setItems(newItems);
+    } else {
+      setItems((prev) => [...prev, ...newItems]);
+    }
+  };
+
+  // Load first page once authenticated OR when sort changes
   useEffect(() => {
     if (status !== 'authenticated') return;
 
-    async function loadFirstPage() {
+    (async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const res = await fetch(`/api/items?take=${PAGE_SIZE}`);
-        if (!res.ok) throw new Error('Failed to load items.');
-        const data = await res.json();
-
-        setItems((data.items ?? []) as FeedItem[]);
-        setNextCursor(data.nextCursor ?? null);
+        await fetchPage({ reset: true });
       } catch (err) {
         setError((err as Error).message);
       } finally {
         setLoading(false);
       }
-    }
-
-    loadFirstPage();
-  }, [status]);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, sortOrder]);
 
   const handleLoadMore = async () => {
     if (loadingMore || nextCursor == null) return;
@@ -100,12 +115,7 @@ export default function LostFoundFeedPage() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/items?take=${PAGE_SIZE}&cursor=${nextCursor}`);
-      if (!res.ok) throw new Error('Failed to load more items.');
-      const data = await res.json();
-
-      setItems((prev) => [...prev, ...((data.items ?? []) as FeedItem[])]);
-      setNextCursor(data.nextCursor ?? null);
+      await fetchPage({ cursor: nextCursor });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -120,29 +130,20 @@ export default function LostFoundFeedPage() {
       const q = search.trim().toLowerCase();
       next = next.filter(
         (item) =>
-          item.title.toLowerCase().includes(q)
-          || item.description.toLowerCase().includes(q),
+          item.title.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q),
       );
     }
 
-    if (typeFilter !== 'ALL') {
-      next = next.filter((item) => item.type === typeFilter);
-    }
+    if (typeFilter !== 'ALL') next = next.filter((item) => item.type === typeFilter);
+    if (buildingFilter) next = next.filter((item) => item.building === buildingFilter);
+    if (categoryFilter) next = next.filter((item) => item.category === categoryFilter);
 
-    if (buildingFilter) {
-      next = next.filter((item) => item.building === buildingFilter);
-    }
-
-    if (categoryFilter) {
-      next = next.filter((item) => item.category === categoryFilter);
-    }
-
-    // ✅ Sort by posted time (createdAt) for consistent pagination
+    // Safety net: keep consistent ordering for currently loaded items
     next.sort((a, b) => {
-      const da = new Date(a.createdAt).getTime();
-      const db = new Date(b.createdAt).getTime();
-      if (sortOrder === 'NEWEST') return db - da;
-      return da - db;
+      const da = new Date(a.date).getTime();
+      const db = new Date(b.date).getTime();
+      return sortOrder === 'NEWEST' ? db - da : da - db;
     });
 
     return next;
@@ -150,13 +151,7 @@ export default function LostFoundFeedPage() {
 
   if (status === 'loading') {
     return (
-      <main
-        style={{
-          background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
-          minHeight: 'calc(100vh - 64px)',
-          padding: '3.5rem 0 4rem',
-        }}
-      >
+      <main style={pageStyle}>
         <div className="container text-center py-5">
           <p className="text-muted mb-0">Checking your session…</p>
         </div>
@@ -166,13 +161,7 @@ export default function LostFoundFeedPage() {
 
   if (!session) {
     return (
-      <main
-        style={{
-          background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
-          minHeight: 'calc(100vh - 64px)',
-          padding: '3.5rem 0 4rem',
-        }}
-      >
+      <main style={pageStyle}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-8">
@@ -180,8 +169,8 @@ export default function LostFoundFeedPage() {
                 <div className="card-body text-center p-4">
                   <h1 className="h4 fw-bold mb-2">Sign In Required</h1>
                   <p className="text-muted mb-3">
-                    The <strong>Items Feed</strong> is only available to authenticated UH Manoa users.
-                    Please sign in with your UH email to view campus lost &amp; found posts.
+                    The <strong>Items Feed</strong> is only available to authenticated UH Manoa
+                    users. Please sign in with your UH email to view campus lost &amp; found posts.
                   </p>
                   <Link href="/auth/signin" className="btn btn-success">
                     Go to Log In
@@ -196,24 +185,15 @@ export default function LostFoundFeedPage() {
   }
 
   return (
-    <main
-      style={{
-        background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
-        minHeight: 'calc(100vh - 64px)',
-        padding: '3.5rem 0 4rem',
-      }}
-    >
+    <main style={pageStyle}>
       <div className="container">
         <header className="mb-4 text-center">
-          <h1 className="h3 fw-bold mb-1">
-            Find it. Report it. Reunite it.
-          </h1>
+          <h1 className="h3 fw-bold mb-1">Find it. Report it. Reunite it.</h1>
           <p className="text-muted mb-0">
             Browse campus-wide lost and found posts, or use filters to narrow your search.
           </p>
         </header>
 
-        {/* FILTERS */}
         <section className="card border-0 shadow-sm mb-4">
           <div className="card-body">
             <div className="row g-3 align-items-end">
@@ -304,21 +284,16 @@ export default function LostFoundFeedPage() {
         </section>
 
         {loading && <p className="text-muted">Loading items…</p>}
-
         {error && <p className="text-danger mb-3">{error}</p>}
 
         {!loading && !error && filteredItems.length === 0 && (
           <p className="text-muted">No items match your filters yet.</p>
         )}
 
-        {/* ITEMS GRID */}
         <section className="row g-3">
           {filteredItems.map((item) => (
             <div key={item.id} className="col-md-6 col-lg-4">
-              <Link
-                href={`/item/${item.id}`}
-                className="text-decoration-none text-reset"
-              >
+              <Link href={`/item/${item.id}`} className="text-decoration-none text-reset">
                 <div className="card h-100 border-0 shadow-sm">
                   {item.imageUrl && (
                     <div
@@ -354,14 +329,7 @@ export default function LostFoundFeedPage() {
                     <h2 className="h6 fw-bold mb-1">{item.title}</h2>
 
                     <p className="small text-muted mb-2">
-                      {item.building}
-                      {' '}
-                      •
-                      {' '}
-                      {item.term}
-                      {' '}
-                      •
-                      {' '}
+                      {item.building} • {item.term} •{' '}
                       {new Date(item.date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -381,7 +349,6 @@ export default function LostFoundFeedPage() {
           ))}
         </section>
 
-        {/* LOAD MORE */}
         <div className="d-flex justify-content-center mt-4">
           {nextCursor ? (
             <button
@@ -393,9 +360,9 @@ export default function LostFoundFeedPage() {
               {loadingMore ? 'Loading…' : 'Load more'}
             </button>
           ) : (
-            !loading && !error && items.length > 0 && (
-              <p className="text-muted small mb-0">You’ve reached the end.</p>
-            )
+            !loading &&
+            !error &&
+            items.length > 0 && <p className="text-muted small mb-0">You’ve reached the end.</p>
           )}
         </div>
       </div>
