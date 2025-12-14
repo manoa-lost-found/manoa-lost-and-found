@@ -22,7 +22,8 @@ type FeedItem = {
   category: string;
   building: string;
   term: string;
-  date: string;
+  date: string; // lost/found date (YYYY-MM-DD)
+  createdAt: string; // ✅ posted date for stable pagination/sorting
   locationName?: string | null;
 };
 
@@ -48,10 +49,15 @@ function typeLabel(type: ItemType): string {
 }
 
 export default function LostFoundFeedPage() {
+  const PAGE_SIZE = 12;
+
   // state
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
 
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<ItemType | 'ALL'>('ALL');
@@ -62,21 +68,21 @@ export default function LostFoundFeedPage() {
   // session hook
   const { data: session, status } = useSession();
 
-  // effects (always called, but can early-return inside)
+  // Load first page once authenticated
   useEffect(() => {
-    if (status !== 'authenticated') {
-      // don't load items until we know the user is logged in
-      return;
-    }
+    if (status !== 'authenticated') return;
 
-    async function load() {
+    async function loadFirstPage() {
+      setLoading(true);
+      setError(null);
+
       try {
-        const res = await fetch('/api/items');
-        if (!res.ok) {
-          throw new Error('Failed to load items.');
-        }
+        const res = await fetch(`/api/items?take=${PAGE_SIZE}`);
+        if (!res.ok) throw new Error('Failed to load items.');
         const data = await res.json();
+
         setItems((data.items ?? []) as FeedItem[]);
+        setNextCursor(data.nextCursor ?? null);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -84,8 +90,28 @@ export default function LostFoundFeedPage() {
       }
     }
 
-    load();
+    loadFirstPage();
   }, [status]);
+
+  const handleLoadMore = async () => {
+    if (loadingMore || nextCursor == null) return;
+
+    setLoadingMore(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/items?take=${PAGE_SIZE}&cursor=${nextCursor}`);
+      if (!res.ok) throw new Error('Failed to load more items.');
+      const data = await res.json();
+
+      setItems((prev) => [...prev, ...((data.items ?? []) as FeedItem[])]);
+      setNextCursor(data.nextCursor ?? null);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const filteredItems = useMemo(() => {
     let next = [...items];
@@ -111,12 +137,11 @@ export default function LostFoundFeedPage() {
       next = next.filter((item) => item.category === categoryFilter);
     }
 
+    // ✅ Sort by posted time (createdAt) for consistent pagination
     next.sort((a, b) => {
-      const da = new Date(a.date).getTime();
-      const db = new Date(b.date).getTime();
-      if (sortOrder === 'NEWEST') {
-        return db - da;
-      }
+      const da = new Date(a.createdAt).getTime();
+      const db = new Date(b.createdAt).getTime();
+      if (sortOrder === 'NEWEST') return db - da;
       return da - db;
     });
 
@@ -169,8 +194,6 @@ export default function LostFoundFeedPage() {
       </main>
     );
   }
-
-  // normal authenticated render
 
   return (
     <main
@@ -357,6 +380,24 @@ export default function LostFoundFeedPage() {
             </div>
           ))}
         </section>
+
+        {/* LOAD MORE */}
+        <div className="d-flex justify-content-center mt-4">
+          {nextCursor ? (
+            <button
+              type="button"
+              className="btn btn-outline-success px-4"
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+            >
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </button>
+          ) : (
+            !loading && !error && items.length > 0 && (
+              <p className="text-muted small mb-0">You’ve reached the end.</p>
+            )
+          )}
+        </div>
       </div>
     </main>
   );
