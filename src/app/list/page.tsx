@@ -1,18 +1,18 @@
 'use client';
 
-/* eslint-disable jsx-a11y/label-has-associated-control */
-
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BUILDINGS } from '@/data/buildings';
 import { CATEGORIES } from '@/data/categories';
 
+// --- Types ---
 type ItemType = 'LOST' | 'FOUND';
 type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
+type SortOrder = 'NEWEST' | 'OLDEST';
 
-type FeedItem = {
+interface FeedItem {
   id: number;
   title: string;
   description: string;
@@ -22,12 +22,35 @@ type FeedItem = {
   category: string;
   building: string;
   term: string;
+  date: string;
+  similarity?: number; // Added for AI search results
+}
   date: string; // YYYY-MM-DD (lost/found date)
   locationName?: string | null;
 };
 
-type SortOrder = 'NEWEST' | 'OLDEST';
+interface ApiData {
+  items: FeedItem[];
+}
 
+// --- Helper: Debounce Hook ---
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// --- Helper Functions ---
 const PAGE_SIZE = 12;
 
 const pageStyle: React.CSSProperties = {
@@ -56,18 +79,32 @@ function typeLabel(type: ItemType): string {
 }
 
 export default function LostFoundFeedPage() {
+  // Session
+  const { data: session, status } = useSession();
+
+  // State
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
 
+  // Filter State
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<ItemType | 'ALL'>('ALL');
   const [buildingFilter, setBuildingFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('NEWEST');
 
+  // Debounced Search (waits 500ms after typing stops)
+  const debouncedSearch = useDebounce(search, 500);
+
+  // Fetch Logic
+  const fetchItems = useCallback(async () => {
+    if (status !== 'authenticated') return;
+
+    setLoading(true);
+    setError(null);
   const { data: session, status } = useSession();
 
   const fetchPage = async (opts: { cursor?: number | null; reset?: boolean } = {}) => {
@@ -123,9 +160,49 @@ export default function LostFoundFeedPage() {
     }
   };
 
-  const filteredItems = useMemo(() => {
-    let next = [...items];
+    try {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set('q', debouncedSearch);
+      if (typeFilter !== 'ALL') params.set('type', typeFilter);
+      if (buildingFilter) params.set('building', buildingFilter);
+      if (categoryFilter) params.set('category', categoryFilter);
+      params.set('sort', sortOrder);
 
+      const res = await fetch(`/api/items?${params.toString()}`);
+
+      if (!res.ok) {
+        throw new Error('Failed to load items.');
+      }
+
+      const data = (await res.json()) as ApiData;
+      setItems(data.items);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [status, debouncedSearch, typeFilter, buildingFilter, categoryFilter, sortOrder]);
+
+  // Effect: Trigger fetch when filters or debounced search changes
+  useEffect(() => {
+    // Only fetch if we are actually logged in
+    if (status === 'authenticated') {
+      fetchItems().catch(() => {
+        // Error is already handled in fetchItems
+      });
+    } else if (status === 'unauthenticated') {
+      setLoading(false);
+    }
+  }, [status, fetchItems]);
+
+  // --- Render: Loading / Unauthenticated ---
+  if (status === 'loading') {
+    return (
+      <main style={{ minHeight: 'calc(100vh - 64px)', padding: '3.5rem 0 4rem' }}>
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       next = next.filter(
@@ -161,6 +238,10 @@ export default function LostFoundFeedPage() {
 
   if (!session) {
     return (
+      <main style={{ minHeight: 'calc(100vh - 64px)', padding: '3.5rem 0 4rem' }}>
+        <div className="container text-center">
+          <h1>Sign In Required</h1>
+          <Link href="/auth/signin" className="btn btn-primary mt-3">Go to Log In</Link>
       <main style={pageStyle}>
         <div className="container">
           <div className="row justify-content-center">
@@ -184,6 +265,7 @@ export default function LostFoundFeedPage() {
     );
   }
 
+  // --- Render: Main Feed ---
   return (
     <main style={pageStyle}>
       <div className="container">
@@ -198,11 +280,11 @@ export default function LostFoundFeedPage() {
           <div className="card-body">
             <div className="row g-3 align-items-end">
               <div className="col-md-3">
-                <label htmlFor="search" className="form-label">
+                <label htmlFor="search-input" className="form-label">
                   Search by keyword
                 </label>
                 <input
-                  id="search"
+                  id="search-input"
                   type="text"
                   className="form-control"
                   placeholder="e.g. water bottle, ID card"
@@ -212,11 +294,11 @@ export default function LostFoundFeedPage() {
               </div>
 
               <div className="col-md-2">
-                <label htmlFor="typeFilter" className="form-label">
+                <label htmlFor="type-filter" className="form-label">
                   Item type
                 </label>
                 <select
-                  id="typeFilter"
+                  id="type-filter"
                   className="form-select"
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value as ItemType | 'ALL')}
@@ -228,11 +310,11 @@ export default function LostFoundFeedPage() {
               </div>
 
               <div className="col-md-3">
-                <label htmlFor="buildingFilter" className="form-label">
+                <label htmlFor="building-filter" className="form-label">
                   Building
                 </label>
                 <select
-                  id="buildingFilter"
+                  id="building-filter"
                   className="form-select"
                   value={buildingFilter}
                   onChange={(e) => setBuildingFilter(e.target.value)}
@@ -247,11 +329,11 @@ export default function LostFoundFeedPage() {
               </div>
 
               <div className="col-md-2">
-                <label htmlFor="categoryFilter" className="form-label">
+                <label htmlFor="category-filter" className="form-label">
                   Category
                 </label>
                 <select
-                  id="categoryFilter"
+                  id="category-filter"
                   className="form-select"
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
@@ -266,11 +348,11 @@ export default function LostFoundFeedPage() {
               </div>
 
               <div className="col-md-2">
-                <label htmlFor="sortOrder" className="form-label">
+                <label htmlFor="sort-order" className="form-label">
                   Sort
                 </label>
                 <select
-                  id="sortOrder"
+                  id="sort-order"
                   className="form-select"
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as SortOrder)}
@@ -283,6 +365,14 @@ export default function LostFoundFeedPage() {
           </div>
         </section>
 
+        {/* LOADING & ERROR STATES */}
+        {loading && <p className="text-muted text-center">Loading items…</p>}
+        {error && <p className="text-danger text-center mb-3">{error}</p>}
+        {!loading && !error && items.length === 0 && (
+          <p className="text-muted text-center">No items match your filters yet.</p>
+        )}
+
+        {/* RESULTS GRID */}
         {loading && <p className="text-muted">Loading items…</p>}
         {error && <p className="text-danger mb-3">{error}</p>}
 
@@ -291,8 +381,23 @@ export default function LostFoundFeedPage() {
         )}
 
         <section className="row g-3">
-          {filteredItems.map((item) => (
+          {items.map((item) => (
             <div key={item.id} className="col-md-6 col-lg-4">
+              <Link
+                href={`/item/${item.id}`}
+                className="text-decoration-none text-reset"
+              >
+                <div className="card h-100 border-0 shadow-sm position-relative">
+                  {/* AI Match Badge */}
+                  {item.similarity !== undefined && item.similarity > 0.78 && (
+                    <div
+                      className="badge bg-success position-absolute"
+                      style={{ top: '10px', right: '10px', zIndex: 10 }}
+                    >
+                      Best Match
+                    </div>
+                  )}
+
               <Link href={`/item/${item.id}`} className="text-decoration-none text-reset">
                 <div className="card h-100 border-0 shadow-sm">
                   {item.imageUrl && (
