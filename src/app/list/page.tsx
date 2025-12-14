@@ -1,18 +1,18 @@
 'use client';
 
-/* eslint-disable jsx-a11y/label-has-associated-control */
-
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BUILDINGS } from '@/data/buildings';
 import { CATEGORIES } from '@/data/categories';
 
+// --- Types ---
 type ItemType = 'LOST' | 'FOUND';
 type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
+type SortOrder = 'NEWEST' | 'OLDEST';
 
-type FeedItem = {
+interface FeedItem {
   id: number;
   title: string;
   description: string;
@@ -23,11 +23,31 @@ type FeedItem = {
   building: string;
   term: string;
   date: string;
-  locationName?: string | null;
-};
+  similarity?: number; // Added for AI search results
+}
 
-type SortOrder = 'NEWEST' | 'OLDEST';
+interface ApiData {
+  items: FeedItem[];
+}
 
+// --- Helper: Debounce Hook ---
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// --- Helper Functions ---
 function statusBadgeClass(status: ItemStatus): string {
   switch (status) {
     case 'OPEN':
@@ -48,90 +68,74 @@ function typeLabel(type: ItemType): string {
 }
 
 export default function LostFoundFeedPage() {
-  // state
+  // Session
+  const { data: session, status } = useSession();
+
+  // State
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filter State
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<ItemType | 'ALL'>('ALL');
   const [buildingFilter, setBuildingFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('NEWEST');
 
-  // session hook
-  const { data: session, status } = useSession();
+  // Debounced Search (waits 500ms after typing stops)
+  const debouncedSearch = useDebounce(search, 500);
 
-  // effects (always called, but can early-return inside)
+  // Fetch Logic
+  const fetchItems = useCallback(async () => {
+    if (status !== 'authenticated') return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set('q', debouncedSearch);
+      if (typeFilter !== 'ALL') params.set('type', typeFilter);
+      if (buildingFilter) params.set('building', buildingFilter);
+      if (categoryFilter) params.set('category', categoryFilter);
+      params.set('sort', sortOrder);
+
+      const res = await fetch(`/api/items?${params.toString()}`);
+
+      if (!res.ok) {
+        throw new Error('Failed to load items.');
+      }
+
+      const data = (await res.json()) as ApiData;
+      setItems(data.items);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [status, debouncedSearch, typeFilter, buildingFilter, categoryFilter, sortOrder]);
+
+  // Effect: Trigger fetch when filters or debounced search changes
   useEffect(() => {
-    if (status !== 'authenticated') {
-      // don't load items until we know the user is logged in
-      return;
+    // Only fetch if we are actually logged in
+    if (status === 'authenticated') {
+      fetchItems().catch(() => {
+        // Error is already handled in fetchItems
+      });
+    } else if (status === 'unauthenticated') {
+      setLoading(false);
     }
+  }, [status, fetchItems]);
 
-    async function load() {
-      try {
-        const res = await fetch('/api/items');
-        if (!res.ok) {
-          throw new Error('Failed to load items.');
-        }
-        const data = await res.json();
-        setItems((data.items ?? []) as FeedItem[]);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    load();
-  }, [status]);
-
-  const filteredItems = useMemo(() => {
-    let next = [...items];
-
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      next = next.filter(
-        (item) =>
-          item.title.toLowerCase().includes(q)
-          || item.description.toLowerCase().includes(q),
-      );
-    }
-
-    if (typeFilter !== 'ALL') {
-      next = next.filter((item) => item.type === typeFilter);
-    }
-
-    if (buildingFilter) {
-      next = next.filter((item) => item.building === buildingFilter);
-    }
-
-    if (categoryFilter) {
-      next = next.filter((item) => item.category === categoryFilter);
-    }
-
-    next.sort((a, b) => {
-      const da = new Date(a.date).getTime();
-      const db = new Date(b.date).getTime();
-      if (sortOrder === 'NEWEST') {
-        return db - da;
-      }
-      return da - db;
-    });
-
-    return next;
-  }, [items, search, typeFilter, buildingFilter, categoryFilter, sortOrder]);
-
+  // --- Render: Loading / Unauthenticated ---
   if (status === 'loading') {
     return (
-      <main
-        style={{
-          background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
-          minHeight: 'calc(100vh - 64px)',
-          padding: '3.5rem 0 4rem',
-        }}
-      >
+      <main style={{ minHeight: 'calc(100vh - 64px)', padding: '3.5rem 0 4rem' }}>
         <div className="container text-center py-5">
           <p className="text-muted mb-0">Checking your session…</p>
         </div>
@@ -141,37 +145,16 @@ export default function LostFoundFeedPage() {
 
   if (!session) {
     return (
-      <main
-        style={{
-          background: 'linear-gradient(135deg, #f1f7f4, #e4f0ea)',
-          minHeight: 'calc(100vh - 64px)',
-          padding: '3.5rem 0 4rem',
-        }}
-      >
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-md-8">
-              <div className="card border-0 shadow-sm rounded-4">
-                <div className="card-body text-center p-4">
-                  <h1 className="h4 fw-bold mb-2">Sign In Required</h1>
-                  <p className="text-muted mb-3">
-                    The <strong>Items Feed</strong> is only available to authenticated UH Manoa users.
-                    Please sign in with your UH email to view campus lost &amp; found posts.
-                  </p>
-                  <Link href="/auth/signin" className="btn btn-success">
-                    Go to Log In
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
+      <main style={{ minHeight: 'calc(100vh - 64px)', padding: '3.5rem 0 4rem' }}>
+        <div className="container text-center">
+          <h1>Sign In Required</h1>
+          <Link href="/auth/signin" className="btn btn-primary mt-3">Go to Log In</Link>
         </div>
       </main>
     );
   }
 
-  // normal authenticated render
-
+  // --- Render: Main Feed ---
   return (
     <main
       style={{
@@ -182,9 +165,7 @@ export default function LostFoundFeedPage() {
     >
       <div className="container">
         <header className="mb-4 text-center">
-          <h1 className="h3 fw-bold mb-1">
-            Find it. Report it. Reunite it.
-          </h1>
+          <h1 className="h3 fw-bold mb-1">Find it. Report it. Reunite it.</h1>
           <p className="text-muted mb-0">
             Browse campus-wide lost and found posts, or use filters to narrow your search.
           </p>
@@ -195,11 +176,11 @@ export default function LostFoundFeedPage() {
           <div className="card-body">
             <div className="row g-3 align-items-end">
               <div className="col-md-3">
-                <label htmlFor="search" className="form-label">
+                <label htmlFor="search-input" className="form-label">
                   Search by keyword
                 </label>
                 <input
-                  id="search"
+                  id="search-input"
                   type="text"
                   className="form-control"
                   placeholder="e.g. water bottle, ID card"
@@ -209,11 +190,11 @@ export default function LostFoundFeedPage() {
               </div>
 
               <div className="col-md-2">
-                <label htmlFor="typeFilter" className="form-label">
+                <label htmlFor="type-filter" className="form-label">
                   Item type
                 </label>
                 <select
-                  id="typeFilter"
+                  id="type-filter"
                   className="form-select"
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value as ItemType | 'ALL')}
@@ -225,11 +206,11 @@ export default function LostFoundFeedPage() {
               </div>
 
               <div className="col-md-3">
-                <label htmlFor="buildingFilter" className="form-label">
+                <label htmlFor="building-filter" className="form-label">
                   Building
                 </label>
                 <select
-                  id="buildingFilter"
+                  id="building-filter"
                   className="form-select"
                   value={buildingFilter}
                   onChange={(e) => setBuildingFilter(e.target.value)}
@@ -244,11 +225,11 @@ export default function LostFoundFeedPage() {
               </div>
 
               <div className="col-md-2">
-                <label htmlFor="categoryFilter" className="form-label">
+                <label htmlFor="category-filter" className="form-label">
                   Category
                 </label>
                 <select
-                  id="categoryFilter"
+                  id="category-filter"
                   className="form-select"
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
@@ -263,11 +244,11 @@ export default function LostFoundFeedPage() {
               </div>
 
               <div className="col-md-2">
-                <label htmlFor="sortOrder" className="form-label">
+                <label htmlFor="sort-order" className="form-label">
                   Sort
                 </label>
                 <select
-                  id="sortOrder"
+                  id="sort-order"
                   className="form-select"
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as SortOrder)}
@@ -280,23 +261,32 @@ export default function LostFoundFeedPage() {
           </div>
         </section>
 
-        {loading && <p className="text-muted">Loading items…</p>}
-
-        {error && <p className="text-danger mb-3">{error}</p>}
-
-        {!loading && !error && filteredItems.length === 0 && (
-          <p className="text-muted">No items match your filters yet.</p>
+        {/* LOADING & ERROR STATES */}
+        {loading && <p className="text-muted text-center">Loading items…</p>}
+        {error && <p className="text-danger text-center mb-3">{error}</p>}
+        {!loading && !error && items.length === 0 && (
+          <p className="text-muted text-center">No items match your filters yet.</p>
         )}
 
-        {/* ITEMS GRID */}
+        {/* RESULTS GRID */}
         <section className="row g-3">
-          {filteredItems.map((item) => (
+          {items.map((item) => (
             <div key={item.id} className="col-md-6 col-lg-4">
               <Link
                 href={`/item/${item.id}`}
                 className="text-decoration-none text-reset"
               >
-                <div className="card h-100 border-0 shadow-sm">
+                <div className="card h-100 border-0 shadow-sm position-relative">
+                  {/* AI Match Badge */}
+                  {item.similarity !== undefined && item.similarity > 0.78 && (
+                    <div
+                      className="badge bg-success position-absolute"
+                      style={{ top: '10px', right: '10px', zIndex: 10 }}
+                    >
+                      Best Match
+                    </div>
+                  )}
+
                   {item.imageUrl && (
                     <div
                       style={{
@@ -331,14 +321,7 @@ export default function LostFoundFeedPage() {
                     <h2 className="h6 fw-bold mb-1">{item.title}</h2>
 
                     <p className="small text-muted mb-2">
-                      {item.building}
-                      {' '}
-                      •
-                      {' '}
-                      {item.term}
-                      {' '}
-                      •
-                      {' '}
+                      {item.building} • {item.term} •{' '}
                       {new Date(item.date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',

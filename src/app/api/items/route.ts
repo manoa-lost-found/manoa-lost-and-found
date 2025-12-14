@@ -1,14 +1,19 @@
 // src/app/api/items/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { Prisma, LostFoundStatus, LostFoundType } from '@prisma/client';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import Fuse from 'fuse.js';
 import authOptions from '@/lib/authOptions';
 import { prisma } from '@/lib/prisma';
-import { LostFoundStatus, LostFoundType } from '@prisma/client';
 
+// --- Configuration ---
+
+// --- Interfaces ---
 type ItemType = 'LOST' | 'FOUND';
 type ItemStatus = 'OPEN' | 'TURNED_IN' | 'WAITING_FOR_PICKUP' | 'RECOVERED';
 
-export type FeedItem = {
+export interface FeedItem {
   id: number;
   title: string;
   description: string;
@@ -17,54 +22,131 @@ export type FeedItem = {
   imageUrl?: string | null;
   category: string;
   building: string;
-  term: string; // e.g. 'Fall 2025'
-  date: string; // 'YYYY-MM-DD'
+  term: string;
+  date: string;
   locationName?: string | null;
   ownerEmail: string;
   ownerId?: number;
-};
+  similarity?: number;
+}
 
-/**
- * Given a date, compute the UH-style academic term string.
- * Fall runs roughly Aug–Dec, Spring Jan–May, Summer Jun–Jul.
- */
+// Interface for the POST request body
+interface CreateItemRequest {
+  title: string;
+  description: string;
+  type: 'LOST' | 'FOUND';
+  status?: ItemStatus;
+  category: string;
+  building: string;
+  date?: string;
+  imageUrl?: string;
+  locationName?: string;
+}
+
+// --- Helpers ---
 function getUhAcademicTerm(date: Date): string {
   const year = date.getFullYear();
-  const month = date.getMonth() + 1; // 1–12
-
-  if (month >= 8 && month <= 12) {
-    return `Fall ${year}`;
-  }
-  if (month >= 1 && month <= 5) {
-    return `Spring ${year}`;
-  }
-  // Everything else treated as Summer
+  const month = date.getMonth() + 1;
+  if (month >= 8 && month <= 12) return `Fall ${year}`;
+  if (month >= 1 && month <= 5) return `Spring ${year}`;
   return `Summer ${year}`;
 }
 
-// GET all items for the public feed
-export async function GET() {
+// --- GET: Search & Browse ---
+export async function GET(req: NextRequest) {
   try {
-    const items = await prisma.lostFoundItem.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: { owner: true },
-    });
+    const { searchParams } = new URL(req.url);
+    const query = searchParams.get('q') || '';
+    const typeFilter = searchParams.get('type');
+    const buildingFilter = searchParams.get('building');
+    const categoryFilter = searchParams.get('category');
+    const sort = searchParams.get('sort') || 'NEWEST';
 
-    const feedItems: FeedItem[] = items.map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      type: item.type as ItemType,
-      status: item.status as ItemStatus,
-      category: item.category,
-      building: item.building,
-      term: item.term,
-      date: item.date.toISOString().slice(0, 10),
-      imageUrl: item.imageUrl,
-      locationName: item.locationName,
-      ownerEmail: item.owner.email,
-      ownerId: item.ownerId,
-    }));
+    let feedItems: FeedItem[] = [];
+
+    // ---------------------------------------------------------
+    // STRATEGY A: FUZZY SEARCH (If 'q' is present)
+    // ---------------------------------------------------------
+    if (query.trim().length > 0) {
+      // Build standard Prisma filters
+      const where: Prisma.LostFoundItemWhereInput = {};
+
+      if (typeFilter && typeFilter !== 'ALL') {
+        where.type = typeFilter as LostFoundType;
+      }
+      if (buildingFilter) where.building = buildingFilter;
+      if (categoryFilter) where.category = categoryFilter;
+
+      const items = await prisma.lostFoundItem.findMany({
+        where,
+        include: { owner: true },
+      });
+
+      // Fuzzy search using Fuse.js
+      const fuse = new Fuse(items, {
+        keys: ['title', 'description', 'category', 'building'],
+        threshold: 0.4, // Adjust for fuzziness (0.0 = exact match, 1.0 = match anything)
+      });
+
+      const results = fuse.search(query);
+
+      // Map to FeedItem, limit to 20
+      feedItems = results.slice(0, 20).map((result) => ({
+        id: result.item.id,
+        title: result.item.title,
+        description: result.item.description,
+        type: result.item.type as ItemType,
+        status: result.item.status as ItemStatus,
+        category: result.item.category,
+        building: result.item.building,
+        term: result.item.term,
+        date: result.item.date.toISOString().slice(0, 10),
+        imageUrl: result.item.imageUrl,
+        locationName: result.item.locationName,
+        ownerEmail: result.item.owner.email,
+        ownerId: result.item.ownerId,
+      }));
+    } else {
+      // ---------------------------------------------------------
+      // STRATEGY B: STANDARD BROWSE (No search query)
+      // ---------------------------------------------------------
+      // Build standard Prisma filters
+      const where: Prisma.LostFoundItemWhereInput = {};
+
+      if (typeFilter && typeFilter !== 'ALL') {
+        // Safe cast because we trust the filter logic or Prisma ignores invalid enum strings in some configs,
+        // but explicit casting is safer for TS.
+        where.type = typeFilter as LostFoundType;
+      }
+      if (buildingFilter) where.building = buildingFilter;
+      if (categoryFilter) where.category = categoryFilter;
+
+      const items = await prisma.lostFoundItem.findMany({
+        where,
+        orderBy: {
+          createdAt: sort === 'NEWEST' ? 'desc' : 'asc',
+        },
+        include: { owner: true },
+        take: 50,
+      });
+
+      // TS infers 'item' correctly here from Prisma Client
+      feedItems = items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        type: item.type as ItemType,
+        status: item.status as ItemStatus,
+        category: item.category,
+        building: item.building,
+        term: item.term,
+        date: item.date.toISOString().slice(0, 10),
+        imageUrl: item.imageUrl,
+        locationName: item.locationName,
+        ownerEmail: item.owner.email,
+        ownerId: item.ownerId,
+      }));
+    }
 
     return NextResponse.json({ items: feedItems }, { status: 200 });
   } catch (err) {
@@ -77,7 +159,7 @@ export async function GET() {
   }
 }
 
-// POST a new lost/found item (must be logged in)
+// --- POST: Create Item (With Embedding) ---
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -89,66 +171,45 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
+    // Cast the request body to our interface
+    const body = (await req.json()) as CreateItemRequest;
 
-    // Basic validation – required fields
-    if (
-      !body.title
-      || !body.description
-      || !body.type
-      || !body.category
-      || !body.building
-    ) {
-      return NextResponse.json(
-        { error: 'Missing required fields.' },
-        { status: 400 },
-      );
+    // 1. Validation
+    if (!body.title || !body.description || !body.type || !body.category || !body.building) {
+      return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
-    // Find the user in the DB based on the session email
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found.' },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
     }
 
-    // Normalize type
-    const type: LostFoundType = body.type === 'FOUND'
-      ? LostFoundType.FOUND
-      : LostFoundType.LOST;
+    // 2. Prepare Data
+    const type: LostFoundType = body.type === 'FOUND' ? LostFoundType.FOUND : LostFoundType.LOST;
 
-    // Determine status (same logic as before, with Prisma enum)
-    let status: LostFoundStatus;
-    if (
-      body.status
-      && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)
-    ) {
+    let status: LostFoundStatus = LostFoundStatus.OPEN;
+    if (body.status && ['OPEN', 'TURNED_IN', 'WAITING_FOR_PICKUP', 'RECOVERED'].includes(body.status)) {
       status = body.status as LostFoundStatus;
-    } else if (type === LostFoundType.LOST) {
-      status = LostFoundStatus.OPEN;
-    } else {
+    } else if (type !== LostFoundType.LOST) {
       status = LostFoundStatus.WAITING_FOR_PICKUP;
     }
 
     const now = new Date();
     const dateValue = body.date ? new Date(body.date) : now;
-
-    // Derive UH term from the date
     const term = getUhAcademicTerm(dateValue);
 
+    // 3. Create Item (Standard Prisma Create)
     const created = await prisma.lostFoundItem.create({
       data: {
-        title: String(body.title),
-        description: String(body.description),
+        title: body.title,
+        description: body.description,
         type,
         status,
-        category: String(body.category),
-        building: String(body.building),
+        category: body.category,
+        building: body.building,
         term,
         date: dateValue,
         imageUrl: body.imageUrl ?? null,
@@ -158,6 +219,7 @@ export async function POST(req: NextRequest) {
       include: { owner: true },
     });
 
+    // 4. Return Response
     const responseItem: FeedItem = {
       id: created.id,
       title: created.title,
